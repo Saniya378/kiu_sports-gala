@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Venue extends Model
 {
@@ -14,4 +15,13 @@ class Venue extends Model
     protected $fillable = [
         'name',
     ];
+
+    /**
+     * Get the fixtures scheduled at this venue.
+     */
+    public function fixtures(): HasMany
+    {
+        return $this->hasMany(Fixture::class);
+    }
 }
+

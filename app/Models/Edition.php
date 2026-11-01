@@ -46,4 +46,36 @@ class Edition extends Model
     {
         return $this->hasMany(Team::class);
     }
+
+    /**
+     * Get the fixtures for this edition.
+     */
+    public function fixtures(): HasMany
+    {
+        return $this->hasMany(Fixture::class);
+    }
+
+    /**
+     * Get the historical winners recorded for this edition.
+     */
+    public function winners(): HasMany
+    {
+        return $this->hasMany(Winner::class);
+    }
+
+    /**
+     * Get the photos uploaded for this edition.
+     */
+    public function photos(): HasMany
+    {
+        return $this->hasMany(EditionPhoto::class);
+    }
+
+    /**
+     * Get news articles associated with this edition.
+     */
+    public function news(): HasMany
+    {
+        return $this->hasMany(News::class);
+    }
 }

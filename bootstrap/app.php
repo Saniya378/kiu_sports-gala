@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminOnly::class,
+            'can.score' => \App\Http\Middleware\CanScore::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -33,4 +33,20 @@ class Sport extends Model
     {
         return $this->hasMany(Team::class);
     }
+
+    /**
+     * Get the fixtures for this sport.
+     */
+    public function fixtures(): HasMany
+    {
+        return $this->hasMany(Fixture::class);
+    }
+
+    /**
+     * Get the historical winners recorded for this sport.
+     */
+    public function winners(): HasMany
+    {
+        return $this->hasMany(Winner::class);
+    }
 }

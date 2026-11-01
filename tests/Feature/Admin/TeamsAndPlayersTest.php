@@ -254,3 +254,4 @@ class TeamsAndPlayersTest extends TestCase
         $this->assertEquals(2, Team::where('edition_id', $this->edition2026->id)->count());
     }
 }
+

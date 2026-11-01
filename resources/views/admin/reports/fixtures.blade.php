@@ -1,0 +1,181 @@
+@extends('layouts.admin')
+
+@section('title', 'Daily Fixtures Report')
+
+@push('styles')
+<style>
+    @media print {
+        @page {
+            size: A4 portrait;
+            margin: 15mm 12mm 15mm 12mm;
+        }
+        body {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            font-size: 11pt !important;
+        }
+        aside, nav, header, #sidebar, .no-print, button, form {
+            display: none !important;
+        }
+        main {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+        .print-container {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+        th, td {
+            border: 1px solid #444444 !important;
+            padding: 6px 10px !important;
+        }
+        th {
+            background-color: #f1f5f9 !important;
+            color: #000000 !important;
+        }
+    }
+</style>
+@endpush
+
+@section('content')
+<div class="space-y-6">
+    <!-- Filter & Print Action Bar (Hidden on Print) -->
+    <div class="no-print bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <form method="GET" action="{{ route('admin.reports.fixtures') }}" class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div>
+                <label for="date" class="text-xs font-semibold text-slate-600 uppercase mr-2">Match Date:</label>
+                <input type="date" name="date" id="date" value="{{ $selectedDate }}" onchange="this.form.submit()"
+                       class="text-sm border-slate-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+            </div>
+
+            <div>
+                <label for="edition_id" class="text-xs font-semibold text-slate-600 uppercase mr-2">Edition:</label>
+                <select name="edition_id" id="edition_id" onchange="this.form.submit()"
+                        class="text-sm border-slate-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <option value="">All Editions</option>
+                    @foreach($editions as $ed)
+                        <option value="{{ $ed->id }}" {{ $selectedEditionId == $ed->id ? 'selected' : '' }}>
+                            {{ $ed->title }} ({{ $ed->year }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </form>
+
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <a href="{{ route('admin.reports.index') }}" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                &larr; Reports Hub
+            </a>
+            <!-- Prominent Print Button -->
+            <button type="button" onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-lg shadow transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print Official Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Printable Report Sheet -->
+    <div class="print-container bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm">
+        <!-- Formal University Letterhead -->
+        <div class="border-b-2 border-slate-800 pb-4 mb-6 text-center">
+            <div class="text-xs font-bold uppercase tracking-widest text-slate-600">
+                Karakoram International University &bull; Gilgit-Baltistan
+            </div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight mt-1">
+                Directorate of Sports & Physical Education
+            </h1>
+            <div class="text-sm font-semibold text-emerald-800 mt-1">
+                Daily Match Fixtures & Official Schedule Report
+            </div>
+            <div class="text-xs font-semibold text-slate-700 mt-1">
+                Schedule For: <strong>{{ \Carbon\Carbon::parse($selectedDate)->format('l, F j, Y') }}</strong>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2">
+                Report Generated: {{ now()->format('l, F j, Y \a\t h:i A') }}
+            </div>
+        </div>
+
+        @if($fixtures->isNotEmpty())
+            <table class="w-full text-left text-sm border-collapse border border-slate-300">
+                <thead>
+                    <tr class="bg-slate-100 text-xs font-bold uppercase text-slate-800 border-b border-slate-300">
+                        <th class="py-2.5 px-3 border border-slate-300 text-center w-16">Time</th>
+                        <th class="py-2.5 px-4 border border-slate-300">Sport & Category</th>
+                        <th class="py-2.5 px-3 border border-slate-300">Round</th>
+                        <th class="py-2.5 px-4 border border-slate-300">Match Teams (Departments)</th>
+                        <th class="py-2.5 px-3 border border-slate-300">Venue</th>
+                        <th class="py-2.5 px-3 border border-slate-300 text-center w-24">Status</th>
+                        <th class="py-2.5 px-3 border border-slate-300 text-center w-24">Score</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    @foreach($fixtures as $index => $f)
+                        <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50' }}">
+                            <td class="py-2.5 px-3 border border-slate-300 text-center font-bold text-xs whitespace-nowrap">
+                                {{ $f->match_time ? \Carbon\Carbon::parse($f->match_time)->format('h:i A') : 'TBA' }}
+                            </td>
+                            <td class="py-2.5 px-4 border border-slate-300 font-bold text-slate-900">
+                                {{ $f->sport->name ?? 'Sport' }}
+                                @if($f->sport && $f->sport->category)
+                                    <span class="text-xs font-normal text-slate-500">({{ ucfirst($f->sport->category) }})</span>
+                                @endif
+                            </td>
+                            <td class="py-2.5 px-3 border border-slate-300 text-xs text-slate-600">
+                                {{ $f->round ?? 'Match #' . $f->id }}
+                            </td>
+                            <td class="py-2.5 px-4 border border-slate-300 text-slate-900">
+                                <div class="font-bold">{{ $f->team1->name ?? 'Team 1' }} <span class="text-xs font-normal text-slate-500">({{ $f->team1->department->name ?? 'Dept 1' }})</span></div>
+                                <div class="text-xs text-slate-500 font-semibold uppercase">vs</div>
+                                <div class="font-bold">{{ $f->team2->name ?? 'Team 2' }} <span class="text-xs font-normal text-slate-500">({{ $f->team2->department->name ?? 'Dept 2' }})</span></div>
+                            </td>
+                            <td class="py-2.5 px-3 border border-slate-300 text-xs text-slate-700">
+                                {{ $f->venue->name ?? 'KIU Main Ground' }}
+                            </td>
+                            <td class="py-2.5 px-3 border border-slate-300 text-center text-xs uppercase font-bold">
+                                {{ $f->status }}
+                            </td>
+                            <td class="py-2.5 px-3 border border-slate-300 text-center font-mono font-bold text-xs">
+                                @if($f->result)
+                                    {{ $f->result->team1_score }} - {{ $f->result->team2_score }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            <!-- Signatures Section -->
+            <div class="mt-16 pt-8 grid grid-cols-3 gap-6 text-center text-xs text-slate-700">
+                <div>
+                    <div class="border-t border-slate-400 pt-2 w-4/5 mx-auto font-bold">Field Referee / Scorer</div>
+                    <div class="text-[10px] text-slate-500">Recorded By</div>
+                </div>
+                <div>
+                    <div class="border-t border-slate-400 pt-2 w-4/5 mx-auto font-bold">Venue In-Charge</div>
+                    <div class="text-[10px] text-slate-500">Verified By</div>
+                </div>
+                <div>
+                    <div class="border-t border-slate-400 pt-2 w-4/5 mx-auto font-bold">Sports Directorate</div>
+                    <div class="text-[10px] text-slate-500">Supervised By</div>
+                </div>
+            </div>
+        @else
+            <div class="p-8 text-center text-slate-500 border border-dashed border-slate-300 rounded-xl">
+                No fixtures scheduled for {{ \Carbon\Carbon::parse($selectedDate)->format('M d, Y') }}.
+            </div>
+        @endif
+    </div>
+</div>
+@endsection

@@ -43,3 +43,4 @@ class PlayerController extends Controller
             ->with('success', "Player '{$name}' removed from team.");
     }
 }
+

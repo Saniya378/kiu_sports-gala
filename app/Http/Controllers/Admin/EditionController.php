@@ -70,7 +70,10 @@ class EditionController extends Controller
      */
     public function edit(Edition $edition): View
     {
-        return view('admin.editions.edit', compact('edition'));
+        $edition->load(['photos.sport', 'winners.sport', 'winners.winnerDepartment']);
+        $sports = \App\Models\Sport::orderBy('name')->get();
+
+        return view('admin.editions.edit', compact('edition', 'sports'));
     }
 
     /**

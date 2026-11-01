@@ -189,6 +189,123 @@
     </form>
 </div>
 
+<!-- Edition Photos & Gallery Section -->
+<div class="mt-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+        <div>
+            <h3 class="text-base font-bold text-slate-900">Edition Photos & Archive Gallery</h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+                Upload historical and gala photos (multi-upload, auto-resized to max width 1200px).
+            </p>
+        </div>
+        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 self-start sm:self-auto">
+            {{ $edition->photos->count() }} Photo(s)
+        </span>
+    </div>
+
+    <div class="p-6 space-y-6">
+        <!-- Photo Upload Form -->
+        <form method="POST" action="{{ route('admin.editions.photos.store', $edition) }}" enctype="multipart/form-data"
+              class="bg-indigo-50/30 border border-indigo-100 rounded-xl p-5 space-y-4">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <!-- Multiple Photos -->
+                <div class="md:col-span-2">
+                    <label for="edition_photos" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Select Photos (Multiple allowed) <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="file" name="photos[]" id="edition_photos" multiple required accept="image/*"
+                           class="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer border border-slate-300 rounded-lg p-1 bg-white">
+                </div>
+
+                <!-- Upload button -->
+                <div>
+                    <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Upload Photos</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Sport tag (optional) -->
+                <div>
+                    <label for="sport_id" class="block text-xs font-semibold text-slate-600 mb-1">
+                        Sport Discipline <span class="text-slate-400 font-normal">(optional tag)</span>
+                    </label>
+                    <select name="sport_id" id="sport_id"
+                            class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white">
+                        <option value="">General / Opening / Ceremony</option>
+                        @foreach ($sports ?? [] as $sport)
+                            <option value="{{ $sport->id }}">{{ $sport->name }} ({{ ucfirst($sport->category) }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Caption (optional) -->
+                <div>
+                    <label for="photo_caption" class="block text-xs font-semibold text-slate-600 mb-1">
+                        Caption <span class="text-slate-400 font-normal">(optional, for this batch)</span>
+                    </label>
+                    <input type="text" name="caption" id="photo_caption" placeholder="e.g. Prize distribution ceremony"
+                           class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white">
+                </div>
+            </div>
+        </form>
+
+        <!-- Photos Gallery Grid -->
+        @if ($edition->photos->count() > 0)
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                @foreach ($edition->photos as $photo)
+                    <div class="group relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex flex-col justify-between shadow-xs">
+                        <div class="aspect-video w-full overflow-hidden bg-slate-900">
+                            <a href="{{ $photo->image_url }}" target="_blank" title="View Full Image">
+                                <img src="{{ $photo->image_url }}" alt="{{ $photo->caption ?? 'Edition Photo' }}"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
+                            </a>
+                        </div>
+
+                        <div class="p-3 bg-white flex flex-col justify-between flex-1">
+                            <div>
+                                @if ($photo->sport)
+                                    <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 mb-1">
+                                        {{ $photo->sport->name }}
+                                    </span>
+                                @endif
+                                <p class="text-xs font-medium text-slate-800 line-clamp-2">
+                                    {{ $photo->caption ?? 'Edition photo' }}
+                                </p>
+                            </div>
+
+                            <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                                <a href="{{ $photo->image_url }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                    View full
+                                </a>
+
+                                <form method="POST" action="{{ route('admin.editions.photos.destroy', $photo) }}"
+                                      onsubmit="return confirm('Are you sure you want to delete this edition photo?');"
+                                      class="inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-rose-500 hover:text-rose-700 font-semibold text-xs">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="text-center py-8 text-xs text-slate-500">
+                No edition photos uploaded yet. Use the form above to add archive photos.
+            </div>
+        @endif
+    </div>
+</div>
+
 <script>
 function previewEditBanner(event) {
     const input = event.target;
