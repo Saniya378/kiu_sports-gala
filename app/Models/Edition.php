@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Edition extends Model
 {
@@ -36,5 +37,13 @@ class Edition extends Model
     public function getBannerUrlAttribute(): ?string
     {
         return $this->banner ? asset('storage/' . $this->banner) : null;
+    }
+
+    /**
+     * Get the teams participating in this edition.
+     */
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
     }
 }

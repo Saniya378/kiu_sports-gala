@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sport extends Model
 {
@@ -23,5 +24,13 @@ class Sport extends Model
     public function getFullNameAttribute(): string
     {
         return "{$this->name} (" . ucfirst($this->category) . ")";
+    }
+
+    /**
+     * Get the teams registered for this sport.
+     */
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
     }
 }
