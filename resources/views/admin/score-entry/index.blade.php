@@ -86,7 +86,12 @@
                         @endif
                     </div>
 
-                    <div>
+                    <div class="flex items-center space-x-2">
+                        <a href="{{ route('admin.score-entry.pad', $selectedFixture) }}"
+                           class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-black bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm transition-all">
+                            ⚡ Quick Scorer Pad
+                        </a>
+
                         @if ($selectedFixture->status === 'live')
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                                 <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -192,6 +197,40 @@
                     </div>
                 </div>
 
+                <!-- Player of the Match (Optional MVP) -->
+                <div>
+                    <label for="player_of_the_match_id" class="block text-sm font-semibold text-slate-700 mb-1">
+                        ⭐ Player of the Match (MVP) <span class="text-slate-400 font-normal text-xs">(optional)</span>
+                    </label>
+                    <select name="player_of_the_match_id" id="player_of_the_match_id"
+                            class="w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 shadow-sm">
+                        <option value="">None / Not awarded yet</option>
+
+                        @if($selectedFixture->team1 && $selectedFixture->team1->players && $selectedFixture->team1->players->isNotEmpty())
+                            <optgroup label="{{ $selectedFixture->team1->name }} ({{ $selectedFixture->team1->department->name ?? '' }})">
+                                @foreach($selectedFixture->team1->players as $p)
+                                    <option value="{{ $p->id }}" {{ old('player_of_the_match_id', $selectedFixture->result?->player_of_the_match_id) == $p->id ? 'selected' : '' }}>
+                                        {{ $p->name }} @if($p->reg_no) ({{ $p->reg_no }}) @endif
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+
+                        @if($selectedFixture->team2 && $selectedFixture->team2->players && $selectedFixture->team2->players->isNotEmpty())
+                            <optgroup label="{{ $selectedFixture->team2->name }} ({{ $selectedFixture->team2->department->name ?? '' }})">
+                                @foreach($selectedFixture->team2->players as $p)
+                                    <option value="{{ $p->id }}" {{ old('player_of_the_match_id', $selectedFixture->result?->player_of_the_match_id) == $p->id ? 'selected' : '' }}>
+                                        {{ $p->name }} @if($p->reg_no) ({{ $p->reg_no }}) @endif
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                    </select>
+                    @error('player_of_the_match_id')
+                        <p class="text-rose-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Match Summary / Commentary -->
                 <div>
                     <label for="summary" class="block text-sm font-semibold text-slate-700 mb-1">
@@ -205,20 +244,42 @@
                     @enderror
                 </div>
 
+                <!-- Match Status Option (Live vs Completed) -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Match Status
+                    </label>
+                    <div class="flex flex-wrap items-center gap-6 text-sm font-medium text-slate-700">
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="status" value="live" {{ old('status', $selectedFixture->status) === 'live' ? 'checked' : '' }} class="text-indigo-600 focus:ring-indigo-500">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                                Live (In Progress)
+                            </span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="status" value="completed" {{ old('status', $selectedFixture->status) === 'completed' || old('status', $selectedFixture->status) === 'scheduled' ? 'checked' : '' }} class="text-indigo-600 focus:ring-indigo-500">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-800">
+                                ✓ Completed (Final Score)
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Submit Button & Auto-completion Notice -->
                 <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="flex items-center text-xs text-slate-500">
                         <svg class="w-4 h-4 text-emerald-600 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Saving this score will automatically set the fixture status to <strong>Completed</strong> and calculate the winner.</span>
+                        <span>Live scores sync in real-time to public viewers without page reloads.</span>
                     </div>
 
                     <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-sm transition-colors duration-150 flex items-center justify-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>Save Result</span>
+                        <span>Save Score</span>
                     </button>
                 </div>
             </form>

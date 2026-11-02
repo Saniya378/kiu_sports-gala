@@ -48,7 +48,7 @@ class NewsController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
-            'image' => ['nullable', 'image', 'max:5120'], // Max 5MB
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'], // Max 5MB
             'edition_id' => ['nullable', 'exists:editions,id'],
             'published_at' => ['nullable', 'date'],
         ]);
@@ -84,7 +84,7 @@ class NewsController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
             'edition_id' => ['nullable', 'exists:editions,id'],
             'published_at' => ['nullable', 'date'],
         ]);
@@ -119,3 +119,4 @@ class NewsController extends Controller
         return redirect()->route('admin.news.index')->with('success', 'News article deleted successfully.');
     }
 }
+

@@ -3,7 +3,7 @@
 @section('title', 'Photo Gallery & Action Highlights - KIU Sports Gala')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12"
+<div class="space-y-8"
      x-data="{
         lightboxOpen: false,
         currentIndex: 0,
@@ -32,32 +32,34 @@
      @keydown.arrow-right.window="lightboxOpen ? nextImage() : null"
      @keydown.arrow-left.window="lightboxOpen ? prevImage() : null">
 
-    <!-- Gallery Header -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-emerald-900/60 pb-6">
-        <div>
-            <span class="text-xs uppercase tracking-widest font-bold text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-                Visual Chronicle
-            </span>
-            <h1 class="text-3xl md:text-4xl font-black text-white mt-3 tracking-tight">
-                Gala Photo Gallery
-            </h1>
-            <p class="text-emerald-200/80 text-sm md:text-base mt-1">
-                Official tournament moments, match action highlights, and championship celebrations grouped by edition.
-            </p>
-        </div>
+    <!-- Gallery Header Banner -->
+    <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+                <span class="text-xs uppercase tracking-widest font-bold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/30">
+                    Visual Chronicle
+                </span>
+                <h1 class="text-2xl sm:text-4xl font-black text-white mt-3 tracking-tight">
+                    Gala Photo Gallery
+                </h1>
+                <p class="text-slate-300 text-xs sm:text-sm mt-1">
+                    Official tournament moments, match action highlights, and championship celebrations grouped by edition.
+                </p>
+            </div>
 
-        <!-- Edition Year Filter Filter -->
-        <div class="flex items-center gap-2 flex-wrap">
-            <a href="{{ route('gallery') }}"
-               class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {{ empty($selectedYear) ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-[#022116] border border-emerald-800 text-emerald-200 hover:text-amber-300' }}">
-                All Gala Editions
-            </a>
-            @foreach($editions as $ed)
-                <a href="{{ route('gallery', ['year' => $ed->year]) }}"
-                   class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all {{ (string)$selectedYear === (string)$ed->year ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-[#022116] border border-emerald-800 text-emerald-200 hover:text-amber-300' }}">
-                    {{ $ed->year }}
+            <!-- Edition Year Filter Filter -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('gallery') }}"
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {{ empty($selectedYear) ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-slate-900 border border-slate-700 text-slate-200 hover:text-amber-300' }}">
+                    All Gala Editions
                 </a>
-            @endforeach
+                @foreach($editions as $ed)
+                    <a href="{{ route('gallery', ['year' => $ed->year]) }}"
+                       class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all {{ (string)$selectedYear === (string)$ed->year ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-slate-900 border border-slate-700 text-slate-200 hover:text-amber-300' }}">
+                        {{ $ed->year }}
+                    </a>
+                @endforeach
+            </div>
         </div>
     </div>
 
@@ -68,46 +70,46 @@
     @endphp
 
     @if(empty($galleryByEdition))
-        <div class="bg-[#053d2b]/60 border border-emerald-800/80 rounded-2xl p-12 text-center">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-900/80 flex items-center justify-center text-amber-400">
+        <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-xs">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center text-amber-500">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             </div>
-            <h3 class="text-xl font-bold text-white mb-2">No Gallery Photos Found</h3>
-            <p class="text-sm text-emerald-200/80 max-w-md mx-auto">
+            <h3 class="text-xl font-bold text-slate-900 mb-2">No Gallery Photos Found</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto">
                 No match or edition photos are currently available for the selected view.
             </p>
         </div>
     @else
         <!-- Grouped by Edition -->
-        <div class="space-y-14">
+        <div class="space-y-10">
             @foreach($galleryByEdition as $editionId => $group)
                 @php
                     $edition = $group['edition'];
                     $photos = $group['photos'];
                 @endphp
 
-                <section class="bg-[#053d2b]/40 border border-emerald-800/80 rounded-3xl p-6 md:p-8 shadow-xl">
+                <section class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-xs">
                     <!-- Edition Section Header -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 mb-6 border-b border-emerald-800/60">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 mb-6 border-b border-slate-100">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
                                     {{ $edition->year }}
                                 </span>
-                                <h2 class="text-2xl font-black text-white">
+                                <h2 class="text-2xl font-black text-slate-900">
                                     {{ $edition->title }}
                                 </h2>
                             </div>
-                            <p class="text-xs text-emerald-300/80 mt-1">
+                            <p class="text-xs text-slate-500 mt-1">
                                 {{ $photos->count() }} Photos &bull; Status: {{ ucfirst($edition->status) }}
                             </p>
                         </div>
 
                         <div class="flex items-center gap-2">
                             <a href="{{ route('archive', ['year' => $edition->year]) }}"
-                               class="text-xs font-bold text-amber-400 hover:text-amber-300 inline-flex items-center gap-1">
+                               class="text-xs font-bold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1">
                                 View {{ $edition->year }} Archive &rarr;
                             </a>
                         </div>
@@ -128,13 +130,13 @@
                                 $globalIndex++;
                             @endphp
 
-                            <div class="group bg-[#022116] border border-emerald-800/80 rounded-2xl overflow-hidden shadow-lg hover:border-amber-400/80 transition-all duration-300 flex flex-col cursor-pointer"
+                            <div class="group bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-md hover:border-blue-400 transition-all duration-300 flex flex-col cursor-pointer"
                                  @click="openLightbox({{ $photoIndex }})">
                                 <!-- Thumbnail -->
                                 <div class="relative aspect-video bg-black/40 overflow-hidden">
                                     <img src="{{ $photo['image_url'] }}"
                                          alt="{{ $photo['caption'] }}"
-                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                          loading="lazy">
 
                                     <!-- Tag Badge -->
@@ -156,12 +158,12 @@
 
                                 <!-- Photo Info -->
                                 <div class="p-3.5 flex-1 flex flex-col justify-between">
-                                    <p class="text-xs font-semibold text-white line-clamp-2 leading-relaxed group-hover:text-amber-300 transition-colors">
+                                    <p class="text-xs font-semibold text-slate-800 line-clamp-2 leading-relaxed group-hover:text-blue-600 transition-colors">
                                         {{ $photo['caption'] }}
                                     </p>
-                                    <div class="mt-2.5 pt-2 border-t border-emerald-900/60 flex items-center justify-between text-[11px] text-emerald-300/70">
+                                    <div class="mt-2.5 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
                                         <span>{{ $photo['type'] }}</span>
-                                        <span class="font-bold text-amber-400/90 flex items-center gap-1">
+                                        <span class="font-bold text-amber-600 flex items-center gap-1">
                                             Zoom &bull; Lightbox
                                         </span>
                                     </div>
@@ -216,7 +218,7 @@
              @click.outside="closeLightbox()">
 
             <!-- Active Image Container -->
-            <div class="relative max-h-[75vh] flex items-center justify-center overflow-hidden rounded-xl bg-black/60 border border-emerald-900/60 shadow-2xl">
+            <div class="relative max-h-[75vh] flex items-center justify-center overflow-hidden rounded-xl bg-black/60 border border-slate-800 shadow-2xl">
                 <template x-if="images[currentIndex]">
                     <img :src="images[currentIndex].url"
                          :alt="images[currentIndex].caption"
@@ -226,19 +228,18 @@
 
             <!-- Lightbox Caption & Details Bar -->
             <template x-if="images[currentIndex]">
-                <div class="w-full max-w-3xl mt-4 px-4 py-3 rounded-xl bg-[#022116]/90 border border-amber-400/40 text-center text-white backdrop-blur-sm">
+                <div class="w-full max-w-3xl mt-4 px-4 py-3 rounded-xl bg-[#060b18]/90 border border-amber-400/40 text-center text-white backdrop-blur-sm">
                     <div class="flex items-center justify-center gap-2 mb-1 text-xs">
                         <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold uppercase tracking-wider text-[10px]"
                               x-text="images[currentIndex].tag"></span>
-                        <span class="text-emerald-300 font-semibold" x-text="images[currentIndex].edition"></span>
+                        <span class="text-blue-300 font-semibold" x-text="images[currentIndex].edition"></span>
                         <span class="text-slate-400">&bull;</span>
                         <span class="text-amber-300/80 font-mono text-[11px]" x-text="'Photo ' + (currentIndex + 1) + ' of ' + images.length"></span>
                     </div>
-                    <p class="text-sm font-medium text-emerald-100" x-text="images[currentIndex].caption"></p>
+                    <p class="text-sm font-medium text-slate-200" x-text="images[currentIndex].caption"></p>
                 </div>
             </template>
         </div>
     </div>
 </div>
 @endsection
-

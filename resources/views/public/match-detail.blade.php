@@ -3,59 +3,66 @@
 @section('title', ($fixture->team1->name ?? 'Team 1') . ' vs ' . ($fixture->team2->name ?? 'Team 2') . ' - Match Details')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+<div class="space-y-8">
     <!-- Breadcrumb -->
-    <div class="mb-6 flex items-center gap-2 text-xs md:text-sm text-emerald-200/70">
-        <a href="{{ route('home') }}" class="hover:text-amber-400 transition-colors">Home</a>
+    <div class="flex items-center gap-2 text-xs md:text-sm text-slate-500">
+        <a href="{{ route('home') }}" class="hover:text-blue-600 transition-colors">Home</a>
         <span>/</span>
-        <a href="{{ route('schedule', ['edition_id' => $fixture->edition_id, 'sport_id' => $fixture->sport_id]) }}" class="hover:text-amber-400 transition-colors">Schedule</a>
+        <a href="{{ route('schedule', ['edition_id' => $fixture->edition_id, 'sport_id' => $fixture->sport_id]) }}" class="hover:text-blue-600 transition-colors">Schedule</a>
         <span>/</span>
-        <span class="text-amber-400 font-medium">Match #{{ $fixture->id }}</span>
+        <span class="text-slate-900 font-semibold">Match #{{ $fixture->id }}</span>
     </div>
 
     <!-- Match Header Card -->
-    <div class="bg-gradient-to-br from-[#053d2b] to-[#022116] border border-emerald-800/80 rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden mb-10">
+    <div class="bg-gradient-to-br from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 md:p-10 shadow-xl relative overflow-hidden text-white">
         <div class="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Meta Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-emerald-800/60 text-xs md:text-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-slate-800 text-xs md:text-sm">
             <div class="flex items-center gap-2 flex-wrap">
-                <span class="px-3 py-1 rounded-full bg-emerald-900/80 border border-emerald-700/60 text-emerald-300 font-semibold uppercase tracking-wider">
+                <span class="px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-blue-300 font-semibold uppercase tracking-wider">
                     {{ $fixture->sport->name ?? 'Sport' }}
                     @if($fixture->sport && $fixture->sport->category)
-                        <span class="text-emerald-400 font-normal">({{ ucfirst($fixture->sport->category) }})</span>
+                        <span class="text-blue-200 font-normal">({{ ucfirst($fixture->sport->category) }})</span>
                     @endif
                 </span>
 
                 @if($fixture->round)
-                    <span class="px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-800 text-emerald-200">
+                    <span class="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-slate-200">
                         {{ $fixture->round }}
                     </span>
                 @endif
 
-                <span class="px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-800 text-emerald-300">
+                <span class="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-amber-300">
                     {{ $fixture->edition->title ?? 'KIU Sports Gala' }} ({{ $fixture->edition->year ?? 'Annual' }})
                 </span>
             </div>
 
-            <div>
-                @if($fixture->status === 'live')
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-300 border border-red-500/40 animate-pulse">
-                        <span class="w-2 h-2 rounded-full bg-red-400"></span> LIVE NOW
-                    </span>
-                @elseif($fixture->status === 'completed')
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                        ✓ COMPLETED
-                    </span>
-                @elseif($fixture->status === 'cancelled')
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-300 border border-gray-500/40">
-                        CANCELLED
-                    </span>
-                @else
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                        SCHEDULED
-                    </span>
-                @endif
+            <div class="flex items-center gap-3">
+                <div id="live-sync-indicator" class="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[11px] text-slate-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Live Sync: <span id="last-sync-time" class="text-slate-300 font-mono">Connecting...</span></span>
+                </div>
+
+                <div id="status-badge-container">
+                    @if($fixture->status === 'live')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-300 border border-red-500/40 animate-pulse">
+                            <span class="w-2 h-2 rounded-full bg-red-400"></span> LIVE NOW
+                        </span>
+                    @elseif($fixture->status === 'completed')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            ✓ COMPLETED
+                        </span>
+                    @elseif($fixture->status === 'cancelled')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-300 border border-gray-500/40">
+                            CANCELLED
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                            SCHEDULED
+                        </span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -67,40 +74,33 @@
                     <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
                         {{ $fixture->team1->name ?? 'Team 1' }}
                     </h2>
-                    <p class="text-sm md:text-base text-emerald-300 font-medium mt-1">
+                    <p class="text-sm md:text-base text-blue-200 font-medium mt-1">
                         {{ $fixture->team1->department->name ?? 'Department of Team 1' }}
                     </p>
-                    @if($fixture->result && $fixture->result->winner_team_id === $fixture->team1_id)
-                        <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
-                            🏆 WINNER
-                        </span>
-                    @endif
+                    <div id="team1-winner-badge">
+                        @if($fixture->result && $fixture->result->winner_team_id === $fixture->team1_id)
+                            <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+                                🏆 WINNER
+                            </span>
+                        @endif
+                    </div>
                 </div>
             </div>
 
             <!-- Score / VS Center -->
-            <div class="lg:col-span-3 text-center my-4 lg:my-0">
-                @if($fixture->result)
-                    <div class="inline-flex items-center justify-center gap-4 bg-[#022116]/80 px-6 py-4 rounded-2xl border border-amber-400/40 shadow-inner">
-                        <span class="text-4xl md:text-5xl font-black {{ $fixture->result->winner_team_id === $fixture->team1_id ? 'text-amber-400' : 'text-white' }}">
-                            {{ $fixture->result->team1_score }}
-                        </span>
-                        <span class="text-2xl font-light text-emerald-400">:</span>
-                        <span class="text-4xl md:text-5xl font-black {{ $fixture->result->winner_team_id === $fixture->team2_id ? 'text-amber-400' : 'text-white' }}">
-                            {{ $fixture->result->team2_score }}
-                        </span>
-                    </div>
-                    <div class="mt-2 text-xs font-semibold uppercase tracking-wider text-emerald-300">
-                        Final Score
-                    </div>
-                @else
-                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500/20 to-amber-400/10 border border-amber-400/40 text-amber-400 font-black text-2xl">
-                        VS
-                    </div>
-                    <div class="mt-2 text-xs text-emerald-300/80">
-                        Not Played Yet
-                    </div>
-                @endif
+            <div class="lg:col-span-3 text-center my-4 lg:my-0" id="center-score-container">
+                <div class="inline-flex items-center justify-center gap-4 bg-[#040813]/90 px-6 py-4 rounded-2xl border border-amber-400/50 shadow-inner">
+                    <span id="team1-score-display" class="text-4xl md:text-5xl font-black transition-all duration-300 {{ $fixture->result && $fixture->result->winner_team_id === $fixture->team1_id ? 'text-amber-400' : 'text-white' }}">
+                        {{ $fixture->result ? $fixture->result->team1_score : '-' }}
+                    </span>
+                    <span class="text-2xl font-light text-slate-500">:</span>
+                    <span id="team2-score-display" class="text-4xl md:text-5xl font-black transition-all duration-300 {{ $fixture->result && $fixture->result->winner_team_id === $fixture->team2_id ? 'text-amber-400' : 'text-white' }}">
+                        {{ $fixture->result ? $fixture->result->team2_score : '-' }}
+                    </span>
+                </div>
+                <div id="score-label" class="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-300">
+                    {{ $fixture->status === 'live' ? '● Live Running Score' : ($fixture->status === 'completed' ? 'Final Score' : 'Scheduled Score') }}
+                </div>
             </div>
 
             <!-- Team 2 -->
@@ -109,27 +109,55 @@
                     <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
                         {{ $fixture->team2->name ?? 'Team 2' }}
                     </h2>
-                    <p class="text-sm md:text-base text-emerald-300 font-medium mt-1">
+                    <p class="text-sm md:text-base text-blue-200 font-medium mt-1">
                         {{ $fixture->team2->department->name ?? 'Department of Team 2' }}
                     </p>
-                    @if($fixture->result && $fixture->result->winner_team_id === $fixture->team2_id)
-                        <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
-                            🏆 WINNER
-                        </span>
-                    @endif
+                    <div id="team2-winner-badge">
+                        @if($fixture->result && $fixture->result->winner_team_id === $fixture->team2_id)
+                            <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+                                🏆 WINNER
+                            </span>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Match Result Summary if any -->
-        @if($fixture->result && $fixture->result->summary)
-            <div class="mt-4 p-4 rounded-xl bg-[#022116]/60 border border-emerald-800/80 text-sm text-emerald-200">
-                <span class="font-bold text-amber-400">Match Summary:</span> {{ $fixture->result->summary }}
+        <!-- Player of the Match (MVP) Spotlight Card -->
+        <div id="potm-card" class="{{ $fixture->result && $fixture->result->playerOfTheMatch ? '' : 'hidden' }} mt-5 bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-transparent border border-amber-400/50 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center font-black text-2xl shadow-md shadow-amber-500/20 shrink-0">
+                    ⭐
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/40">
+                        Player of the Match
+                    </span>
+                    <h3 id="potm-name" class="text-lg sm:text-xl font-black text-white mt-0.5">
+                        {{ $fixture->result?->playerOfTheMatch?->name }}
+                    </h3>
+                    <p id="potm-details" class="text-xs text-blue-200 mt-0.5">
+                        {{ $fixture->result?->playerOfTheMatch?->team?->name }} &bull; {{ $fixture->result?->playerOfTheMatch?->team?->department?->name }}
+                        @if($fixture->result?->playerOfTheMatch?->reg_no)
+                            &bull; Reg #{{ $fixture->result->playerOfTheMatch->reg_no }}
+                        @endif
+                    </p>
+                </div>
             </div>
-        @endif
+            <div class="hidden sm:block text-right">
+                <span class="text-xs font-bold text-amber-400 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-amber-400/30">
+                    Official MVP Award 🏅
+                </span>
+            </div>
+        </div>
+
+        <!-- Match Result Summary if any -->
+        <div id="match-summary-box" class="{{ $fixture->result && $fixture->result->summary ? '' : 'hidden' }} mt-4 p-4 rounded-xl bg-slate-900/80 border border-slate-700 text-sm text-slate-200">
+            <span class="font-bold text-amber-400">Match Summary:</span> <span id="match-summary-text">{{ $fixture->result?->summary }}</span>
+        </div>
 
         <!-- Venue & Time Footer Details -->
-        <div class="mt-6 pt-6 border-t border-emerald-800/60 flex flex-wrap items-center justify-around gap-4 text-xs md:text-sm text-emerald-200">
+        <div class="mt-6 pt-6 border-t border-slate-800 flex flex-wrap items-center justify-around gap-4 text-xs md:text-sm text-slate-300">
             <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -155,34 +183,34 @@
     </div>
 
     <!-- Team Rosters / Squads Section -->
-    <div class="mb-12">
-        <h3 class="text-xl md:text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="space-y-4">
+        <h3 class="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Team Squads & Rosters
+            <span>Team Squads & Rosters</span>
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Team 1 Squad -->
-            <div class="bg-[#053d2b]/60 border border-emerald-800/80 rounded-xl p-5 shadow-lg">
-                <div class="flex items-center justify-between pb-3 border-b border-emerald-800/60 mb-4">
-                    <h4 class="font-bold text-lg text-white">{{ $fixture->team1->name ?? 'Team 1' }}</h4>
-                    <span class="text-xs text-amber-400 font-semibold">{{ $fixture->team1->players->count() }} Players</span>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                    <h4 class="font-bold text-lg text-slate-900">{{ $fixture->team1->name ?? 'Team 1' }}</h4>
+                    <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">{{ $fixture->team1->players->count() }} Players</span>
                 </div>
 
                 @if($fixture->team1 && $fixture->team1->players->isNotEmpty())
                     <div class="space-y-2">
                         @foreach($fixture->team1->players as $index => $player)
-                            <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#022116]/60 border border-emerald-900/80 text-sm">
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm">
                                 <div class="flex items-center gap-3">
-                                    <span class="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-800 text-xs font-bold text-emerald-200">
+                                    <span class="w-6 h-6 flex items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700">
                                         {{ $index + 1 }}
                                     </span>
                                     <div>
-                                        <div class="font-semibold text-white">{{ $player->name }}</div>
+                                        <div class="font-semibold text-slate-900">{{ $player->name }}</div>
                                         @if($player->reg_no)
-                                            <div class="text-xs text-emerald-300/80">Reg: {{ $player->reg_no }}</div>
+                                            <div class="text-xs text-slate-500">Reg: {{ $player->reg_no }}</div>
                                         @endif
                                     </div>
                                 </div>
@@ -190,29 +218,29 @@
                         @endforeach
                     </div>
                 @else
-                    <p class="text-sm text-emerald-300/60 italic py-4 text-center">No players registered for this team yet.</p>
+                    <p class="text-sm text-slate-400 italic py-4 text-center">No players registered for this team yet.</p>
                 @endif
             </div>
 
             <!-- Team 2 Squad -->
-            <div class="bg-[#053d2b]/60 border border-emerald-800/80 rounded-xl p-5 shadow-lg">
-                <div class="flex items-center justify-between pb-3 border-b border-emerald-800/60 mb-4">
-                    <h4 class="font-bold text-lg text-white">{{ $fixture->team2->name ?? 'Team 2' }}</h4>
-                    <span class="text-xs text-amber-400 font-semibold">{{ $fixture->team2->players->count() }} Players</span>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                    <h4 class="font-bold text-lg text-slate-900">{{ $fixture->team2->name ?? 'Team 2' }}</h4>
+                    <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">{{ $fixture->team2->players->count() }} Players</span>
                 </div>
 
                 @if($fixture->team2 && $fixture->team2->players->isNotEmpty())
                     <div class="space-y-2">
                         @foreach($fixture->team2->players as $index => $player)
-                            <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#022116]/60 border border-emerald-900/80 text-sm">
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm">
                                 <div class="flex items-center gap-3">
-                                    <span class="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-800 text-xs font-bold text-emerald-200">
+                                    <span class="w-6 h-6 flex items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700">
                                         {{ $index + 1 }}
                                     </span>
                                     <div>
-                                        <div class="font-semibold text-white">{{ $player->name }}</div>
+                                        <div class="font-semibold text-slate-900">{{ $player->name }}</div>
                                         @if($player->reg_no)
-                                            <div class="text-xs text-emerald-300/80">Reg: {{ $player->reg_no }}</div>
+                                            <div class="text-xs text-slate-500">Reg: {{ $player->reg_no }}</div>
                                         @endif
                                     </div>
                                 </div>
@@ -220,26 +248,26 @@
                         @endforeach
                     </div>
                 @else
-                    <p class="text-sm text-emerald-300/60 italic py-4 text-center">No players registered for this team yet.</p>
+                    <p class="text-sm text-slate-400 italic py-4 text-center">No players registered for this team yet.</p>
                 @endif
             </div>
         </div>
     </div>
 
     <!-- Match Photos Grid -->
-    <div class="mb-12">
-        <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
-            <h3 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-                <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="space-y-4 pt-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <h3 class="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Match Photos & Action Gallery
-                <span class="text-sm font-normal text-amber-400/90">({{ $fixture->photos->count() }})</span>
+                <span>Match Photos & Action Gallery</span>
+                <span class="text-sm font-bold text-blue-600">({{ $fixture->photos->count() }})</span>
             </h3>
 
             @auth
                 @if(in_array(auth()->user()->role, ['admin', 'scorer']))
-                    <a href="{{ route('admin.fixtures.edit', $fixture) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-amber-300 transition-colors">
+                    <a href="{{ route('admin.fixtures.edit', $fixture) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
@@ -252,7 +280,7 @@
         @if($fixture->photos->isNotEmpty())
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($fixture->photos as $photo)
-                    <div class="group bg-[#053d2b]/60 border border-emerald-800/80 rounded-xl overflow-hidden shadow-lg hover:border-amber-400/60 transition-all duration-300 flex flex-col">
+                    <div class="group bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-blue-400 transition-all duration-300 flex flex-col">
                         <div class="relative aspect-video bg-black/40 overflow-hidden">
                             <img src="{{ $photo->image_url }}"
                                  alt="{{ $photo->caption ?? 'Match action photo' }}"
@@ -269,34 +297,34 @@
                         </div>
                         <div class="p-4 flex-1 flex flex-col justify-between">
                             @if($photo->caption)
-                                <p class="text-sm text-emerald-100 font-medium line-clamp-2 mb-2">
+                                <p class="text-sm text-slate-800 font-medium line-clamp-2 mb-2">
                                     {{ $photo->caption }}
                                 </p>
                             @else
-                                <p class="text-xs text-emerald-300/60 italic mb-2">
+                                <p class="text-xs text-slate-400 italic mb-2">
                                     Match action moment
                                 </p>
                             @endif
 
-                            <div class="text-[11px] text-emerald-300/60 flex items-center justify-between pt-2 border-t border-emerald-900/60">
+                            <div class="text-[11px] text-slate-400 flex items-center justify-between pt-2 border-t border-slate-100">
                                 <span>Uploaded {{ $photo->created_at->diffForHumans() }}</span>
                                 @if($photo->uploader)
                                     <span>by {{ $photo->uploader->name }}</span>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <div class="bg-[#053d2b]/40 border border-emerald-800/60 rounded-xl p-8 text-center">
-                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-emerald-900/60 flex items-center justify-center text-amber-400">
+            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-xs">
+                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-amber-500">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
-                <h4 class="text-base font-semibold text-white">No Match Photos Yet</h4>
-                <p class="text-xs md:text-sm text-emerald-200/70 mt-1 max-w-md mx-auto">
+                <h4 class="text-base font-bold text-slate-900">No Match Photos Yet</h4>
+                <p class="text-xs md:text-sm text-slate-500 mt-1 max-w-md mx-auto">
                     Photos for this match will appear here once uploaded by tournament officials and photographers.
                 </p>
             </div>
@@ -306,7 +334,7 @@
     <!-- Back to Schedule Link -->
     <div class="text-center pt-4">
         <a href="{{ route('schedule', ['edition_id' => $fixture->edition_id, 'sport_id' => $fixture->sport_id]) }}"
-           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:from-amber-400 hover:to-amber-500 transition-all shadow-md">
+           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold transition-all shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -314,5 +342,143 @@
         </a>
     </div>
 </div>
-@endsection
 
+@push('scripts')
+<script>
+    (function() {
+        const fixtureId = {{ $fixture->id }};
+        const endpoint = "{{ route('api.live-scores.show', $fixture) }}";
+        let lastTeam1Score = "{{ $fixture->result?->team1_score ?? '-' }}";
+        let lastTeam2Score = "{{ $fixture->result?->team2_score ?? '-' }}";
+        let currentStatus = "{{ $fixture->status }}";
+
+        const team1ScoreEl = document.getElementById('team1-score-display');
+        const team2ScoreEl = document.getElementById('team2-score-display');
+        const statusBadgeContainer = document.getElementById('status-badge-container');
+        const lastSyncTimeEl = document.getElementById('last-sync-time');
+        const scoreLabelEl = document.getElementById('score-label');
+        const summaryBox = document.getElementById('match-summary-box');
+        const summaryText = document.getElementById('match-summary-text');
+        const team1WinnerBadge = document.getElementById('team1-winner-badge');
+        const team2WinnerBadge = document.getElementById('team2-winner-badge');
+
+        function flashUpdate(element) {
+            if (!element) return;
+            element.classList.add('scale-125', 'text-amber-300', 'transition-transform', 'duration-300');
+            setTimeout(() => {
+                element.classList.remove('scale-125', 'text-amber-300');
+            }, 600);
+        }
+
+        async function fetchLiveMatch() {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                // Update sync time
+                const now = new Date();
+                if (lastSyncTimeEl) {
+                    lastSyncTimeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                }
+
+                // Update scores
+                const newT1 = data.result ? String(data.result.team1_score) : '-';
+                const newT2 = data.result ? String(data.result.team2_score) : '-';
+
+                if (newT1 !== lastTeam1Score) {
+                    lastTeam1Score = newT1;
+                    if (team1ScoreEl) {
+                        team1ScoreEl.textContent = newT1;
+                        flashUpdate(team1ScoreEl);
+                    }
+                }
+
+                if (newT2 !== lastTeam2Score) {
+                    lastTeam2Score = newT2;
+                    if (team2ScoreEl) {
+                        team2ScoreEl.textContent = newT2;
+                        flashUpdate(team2ScoreEl);
+                    }
+                }
+
+                // Update status if changed
+                if (data.status !== currentStatus) {
+                    currentStatus = data.status;
+
+                    if (statusBadgeContainer) {
+                        if (currentStatus === 'live') {
+                            statusBadgeContainer.innerHTML = `
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-300 border border-red-500/40 animate-pulse">
+                                    <span class="w-2 h-2 rounded-full bg-red-400"></span> LIVE NOW
+                                </span>
+                            `;
+                            if (scoreLabelEl) scoreLabelEl.textContent = '● Live Running Score';
+                        } else if (currentStatus === 'completed') {
+                            statusBadgeContainer.innerHTML = `
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                    ✓ COMPLETED
+                                </span>
+                            `;
+                            if (scoreLabelEl) scoreLabelEl.textContent = 'Final Score';
+                        }
+                    }
+                }
+
+                // Update winner badges
+                if (data.result && data.result.winner_team_id) {
+                    const winnerHtml = `
+                        <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+                            🏆 WINNER
+                        </span>
+                    `;
+                    if (data.team1 && data.team1.is_winner && team1WinnerBadge) {
+                        team1WinnerBadge.innerHTML = winnerHtml;
+                    }
+                    if (data.team2 && data.team2.is_winner && team2WinnerBadge) {
+                        team2WinnerBadge.innerHTML = winnerHtml;
+                    }
+                }
+
+                // Update Player of the Match
+                const potmCard = document.getElementById('potm-card');
+                const potmName = document.getElementById('potm-name');
+                const potmDetails = document.getElementById('potm-details');
+                if (data.result && data.result.player_of_the_match && potmCard && potmName && potmDetails) {
+                    potmName.textContent = data.result.player_of_the_match.name;
+                    let desc = data.result.player_of_the_match.team || '';
+                    if (data.result.player_of_the_match.department) {
+                        desc += ' • ' + data.result.player_of_the_match.department;
+                    }
+                    if (data.result.player_of_the_match.reg_no) {
+                        desc += ' • Reg #' + data.result.player_of_the_match.reg_no;
+                    }
+                    potmDetails.textContent = desc;
+                    potmCard.classList.remove('hidden');
+                }
+
+                // Update summary
+                if (data.result && data.result.summary && summaryBox && summaryText) {
+                    summaryText.textContent = data.result.summary;
+                    summaryBox.classList.remove('hidden');
+                }
+
+            } catch (err) {
+                console.error("Live score sync failed:", err);
+            }
+        }
+
+        // Initial sync and set polling interval
+        fetchLiveMatch();
+
+        // Poll every 5s if live, 8s if scheduled, 30s if completed
+        const intervalMs = (currentStatus === 'live') ? 5000 : (currentStatus === 'scheduled' ? 8000 : 30000);
+        setInterval(fetchLiveMatch, intervalMs);
+    })();
+</script>
+@endpush
+@endsection

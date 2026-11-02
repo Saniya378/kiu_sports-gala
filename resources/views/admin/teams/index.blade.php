@@ -174,6 +174,12 @@
                                 </td>
                                 <td class="py-3.5 px-6 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center space-x-2">
+                                        <a href="{{ route('teams.id-cards', $team) }}" target="_blank"
+                                           class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition-colors inline-flex items-center"
+                                           title="Print Official Player ID Passes">
+                                            🪪 Passes
+                                        </a>
+
                                         <a href="{{ route('admin.teams.edit', $team) }}"
                                            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors">
                                             Edit & Players

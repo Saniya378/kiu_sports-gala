@@ -116,3 +116,4 @@ class NewsTest extends TestCase
         Storage::disk('public')->assertMissing($imagePath);
     }
 }
+

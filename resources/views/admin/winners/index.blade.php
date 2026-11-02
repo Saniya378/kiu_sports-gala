@@ -70,8 +70,9 @@
                     <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
                         <th class="py-3.5 px-4">Edition</th>
                         <th class="py-3.5 px-4">Sport</th>
-                        <th class="py-3.5 px-4">Champion (Winner)</th>
-                        <th class="py-3.5 px-4">Runner-Up</th>
+                        <th class="py-3.5 px-4">Champion (Gold 🥇)</th>
+                        <th class="py-3.5 px-4">Runner-Up (Silver 🥈)</th>
+                        <th class="py-3.5 px-4">3rd Place (Bronze 🥉)</th>
                         <th class="py-3.5 px-4">Final Score</th>
                         <th class="py-3.5 px-4 text-right">Actions</th>
                     </tr>
@@ -108,6 +109,16 @@
                                 @if ($winner->runnerUpDepartment)
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
                                         {{ $winner->runnerUpDepartment->name }}
+                                    </span>
+                                @else
+                                    <span class="text-slate-400 italic">Not recorded</span>
+                                @endif
+                            </td>
+
+                            <td class="py-3.5 px-4">
+                                @if ($winner->secondRunnerUpDepartment)
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300">
+                                        {{ $winner->secondRunnerUpDepartment->name }}
                                     </span>
                                 @else
                                     <span class="text-slate-400 italic">Not recorded</span>

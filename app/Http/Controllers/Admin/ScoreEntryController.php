@@ -7,6 +7,7 @@ use App\Models\Edition;
 use App\Models\Fixture;
 use App\Models\Result;
 use App\Models\Sport;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +26,12 @@ class ScoreEntryController extends Controller
                 'edition',
                 'sport',
                 'team1.department',
+                'team1.players',
                 'team2.department',
+                'team2.players',
                 'venue',
                 'result.winnerTeam',
+                'result.playerOfTheMatch',
                 'photos.uploader',
             ])->find($request->fixture_id);
         }
@@ -54,51 +58,95 @@ class ScoreEntryController extends Controller
     }
 
     /**
+     * Display Mobile Quick Scorer Interface / Rapid Pad.
+     */
+    public function quickPad(Fixture $fixture): View
+    {
+        $fixture->load([
+            'edition',
+            'sport',
+            'venue',
+            'team1.department',
+            'team1.players',
+            'team2.department',
+            'team2.players',
+            'result.winnerTeam',
+            'result.playerOfTheMatch',
+        ]);
+
+        return view('admin.score-entry.pad', compact('fixture'));
+    }
+
+    /**
      * Store or update the result of a fixture.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'fixture_id' => ['required', 'exists:fixtures,id'],
             'team1_score' => ['required', 'integer', 'min:0'],
             'team2_score' => ['required', 'integer', 'min:0'],
+            'player_of_the_match_id' => ['nullable', 'exists:players,id'],
+            'status' => ['nullable', 'in:scheduled,live,completed,cancelled'],
             'summary' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $fixture = Fixture::with(['team1', 'team2'])->findOrFail($validated['fixture_id']);
+        $status = $validated['status'] ?? 'completed';
 
-        // Auto-detect winner from scores (null for draw)
+        // Auto-detect winner from scores when completed
         $winnerTeamId = null;
-        if ($validated['team1_score'] > $validated['team2_score']) {
-            $winnerTeamId = $fixture->team1_id;
-        } elseif ($validated['team2_score'] > $validated['team1_score']) {
-            $winnerTeamId = $fixture->team2_id;
-        } else {
-            $winnerTeamId = null; // Draw
+        if ($status === 'completed') {
+            if ($validated['team1_score'] > $validated['team2_score']) {
+                $winnerTeamId = $fixture->team1_id;
+            } elseif ($validated['team2_score'] > $validated['team1_score']) {
+                $winnerTeamId = $fixture->team2_id;
+            } else {
+                $winnerTeamId = null; // Draw
+            }
         }
 
-        DB::transaction(function () use ($fixture, $validated, $winnerTeamId) {
+        DB::transaction(function () use ($fixture, $validated, $winnerTeamId, $status) {
             Result::updateOrCreate(
                 ['fixture_id' => $fixture->id],
                 [
                     'team1_score' => $validated['team1_score'],
                     'team2_score' => $validated['team2_score'],
                     'winner_team_id' => $winnerTeamId,
+                    'player_of_the_match_id' => $validated['player_of_the_match_id'] ?? null,
                     'summary' => $validated['summary'] ?? null,
                 ]
             );
 
-            // Automatically set fixture status to completed
-            $fixture->update(['status' => 'completed']);
+            // Update fixture status
+            $fixture->update(['status' => $status]);
         });
 
         $winnerName = $winnerTeamId
             ? ($winnerTeamId == $fixture->team1_id ? $fixture->team1->name : $fixture->team2->name)
             : null;
 
-        $msg = $winnerName
-            ? "Result saved successfully. Match completed! Winner: {$winnerName}."
-            : "Result saved successfully. Match completed! Result: Draw.";
+        if ($status === 'live') {
+            $msg = "Live score updated successfully. Match status is LIVE.";
+        } elseif ($winnerName) {
+            $msg = "Result saved successfully. Match completed! Winner: {$winnerName}.";
+        } else {
+            $msg = "Result saved successfully. Match completed! Result: Draw.";
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'fixture' => [
+                    'id' => $fixture->id,
+                    'status' => $status,
+                    'team1_score' => (int) $validated['team1_score'],
+                    'team2_score' => (int) $validated['team2_score'],
+                    'winner_team_id' => $winnerTeamId,
+                ],
+            ]);
+        }
 
         $redirectRoute = $request->routeIs('admin.score-entry.*')
             ? 'admin.score-entry.index'

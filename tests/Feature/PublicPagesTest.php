@@ -543,6 +543,29 @@ class PublicPagesTest extends TestCase
         $detailResponse->assertSee('All departmental captains are requested to submit team rosters');
     }
 
+    public function test_public_can_view_teams_page(): void
+    {
+        $edition = Edition::create(['title' => 'Gala 2026', 'year' => 2026, 'status' => 'running']);
+        $dept = Department::create(['name' => 'Computer Science']);
+        $sport = Sport::create(['name' => 'Cricket', 'category' => 'boys']);
+
+        $team = Team::create([
+            'edition_id' => $edition->id,
+            'sport_id' => $sport->id,
+            'department_id' => $dept->id,
+            'name' => 'CS Strikers',
+            'status' => 'approved',
+        ]);
+
+        Player::create(['team_id' => $team->id, 'name' => 'Adnan Baig', 'reg_no' => 'KIU-CS-2026']);
+
+        $response = $this->get(route('teams.public'));
+        $response->assertStatus(200);
+        $response->assertSee('Participating Teams');
+        $response->assertSee('CS Strikers');
+        $response->assertSee('Adnan Baig');
+    }
+
     public function test_public_can_view_about_and_contact_page(): void
     {
         $response = $this->get(route('about'));

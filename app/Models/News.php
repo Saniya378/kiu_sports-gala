@@ -68,3 +68,4 @@ class News extends Model
                      ->where('published_at', '<=', now());
     }
 }
+

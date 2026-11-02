@@ -4,7 +4,7 @@
 
 @section('hero')
     @if ($latestEdition)
-        <div class="relative bg-gradient-to-br from-[#022116] via-[#042f20] to-[#01140d] text-white overflow-hidden border-b-2 border-amber-400">
+        <div class="relative bg-gradient-to-br from-[#060b18] via-[#0c1630] to-[#0a1226] text-white overflow-hidden border-b-2 border-amber-400 shadow-xl">
             @if ($latestEdition->banner)
                 <div class="absolute inset-0 opacity-20 bg-cover bg-center mix-blend-overlay"
                      style="background-image: url('{{ $latestEdition->banner_url }}');"></div>
@@ -45,7 +45,7 @@
                     <!-- Tournament Dates & Fast Actions -->
                     <div class="pt-4 flex flex-wrap items-center gap-4">
                         @if ($latestEdition->start_date && $latestEdition->end_date)
-                            <div class="flex items-center space-x-2 text-xs text-slate-300 bg-black/30 px-3.5 py-2 rounded-lg border border-emerald-800">
+                            <div class="flex items-center space-x-2 text-xs text-slate-300 bg-slate-900/70 px-3.5 py-2 rounded-xl border border-slate-700/80">
                                 <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -54,7 +54,7 @@
                         @endif
 
                         @if ($latestEdition->status === 'running')
-                            <a href="{{ route('today') }}" class="inline-flex items-center px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md transition-all">
+                            <a href="{{ route('today') }}" class="inline-flex items-center px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 shadow-md shadow-amber-500/20 transition-all">
                                 <span>Today's Matches</span> &rarr;
                             </a>
                         @endif
@@ -89,7 +89,7 @@
                         {{ now()->format('l, F j, Y') }} &bull; Live updates from KIU grounds
                     </p>
                 </div>
-                <a href="{{ route('today') }}" class="inline-flex items-center text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
+                <a href="{{ route('today') }}" class="inline-flex items-center text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
                     View full board &rarr;
                 </a>
             </div>
@@ -97,23 +97,23 @@
             @if ($todayMatches->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($todayMatches as $match)
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group">
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group">
                             <!-- Card Header -->
-                            <div class="bg-slate-50 p-4 border-b border-slate-100 flex items-center justify-between text-xs">
+                            <div class="bg-slate-50/80 p-4 border-b border-slate-100 flex items-center justify-between text-xs">
                                 <span class="font-bold text-slate-700">
                                     {{ $match->sport->name }} ({{ ucfirst($match->sport->category) }})
                                 </span>
                                 @if ($match->status === 'live')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
                                         <span class="w-1.5 h-1.5 mr-1 rounded-full bg-emerald-600 animate-pulse"></span>
                                         Live
                                     </span>
                                 @elseif ($match->status === 'completed')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700">
                                         Final
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/50">
                                         {{ $match->match_time ? \Carbon\Carbon::parse($match->match_time)->format('g:i A') : 'Scheduled' }}
                                     </span>
                                 @endif
@@ -124,7 +124,7 @@
                                 <!-- Team 1 -->
                                 <div class="flex items-center justify-between">
                                     <div class="flex flex-col min-w-0 pr-2">
-                                        <span class="font-bold text-base text-slate-900 group-hover:text-emerald-800 transition-colors truncate">
+                                        <span class="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors truncate">
                                             {{ $match->team1->name }}
                                         </span>
                                         <span class="text-xs text-slate-500 truncate">{{ $match->team1->department->name ?? 'Dept' }}</span>
@@ -139,7 +139,7 @@
                                 <!-- Team 2 -->
                                 <div class="flex items-center justify-between">
                                     <div class="flex flex-col min-w-0 pr-2">
-                                        <span class="font-bold text-base text-slate-900 group-hover:text-emerald-800 transition-colors truncate">
+                                        <span class="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors truncate">
                                             {{ $match->team2->name }}
                                         </span>
                                         <span class="text-xs text-slate-500 truncate">{{ $match->team2->department->name ?? 'Dept' }}</span>
@@ -156,7 +156,7 @@
                                     {{ $match->venue->name ?? 'Venue TBD' }}
                                     @if ($match->round) &bull; {{ $match->round }} @endif
                                 </span>
-                                <a href="{{ route('matches.show', $match) }}" class="font-bold text-emerald-800 hover:text-emerald-950 transition-colors shrink-0 ml-2">
+                                <a href="{{ route('matches.show', $match) }}" class="font-bold text-blue-600 hover:text-blue-800 transition-colors shrink-0 ml-2">
                                     Details &rarr;
                                 </a>
                             </div>
@@ -164,7 +164,7 @@
                     @endforeach
                 </div>
             @else
-                <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center max-w-lg mx-auto">
+                <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center max-w-lg mx-auto shadow-sm">
                     <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -174,19 +174,63 @@
                     <p class="text-xs text-slate-500 mt-1 mb-4">
                         Games resume tomorrow. View upcoming fixtures or previous results on the schedule.
                     </p>
-                    <a href="{{ route('schedule') }}" class="inline-flex items-center px-4 py-2 bg-[#042f20] hover:bg-[#022116] text-amber-300 font-bold text-xs rounded-xl transition-colors">
+                    <a href="{{ route('schedule') }}" class="inline-flex items-center px-4 py-2 bg-[#0a1226] hover:bg-[#060b18] text-amber-300 font-bold text-xs rounded-xl transition-colors">
                         Browse Full Schedule
                     </a>
                 </div>
             @endif
         </section>
 
+        @if($topMedalTally->isNotEmpty())
+            <!-- General Trophy Leaderboard Preview -->
+            <section class="bg-gradient-to-br from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/70 rounded-2xl p-6 sm:p-8 text-white shadow-xl space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-4">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                            Tournament Leaderboard
+                        </span>
+                        <h3 class="text-xl sm:text-2xl font-black text-white mt-1.5 flex items-center gap-2">
+                            <span>🏆 General Trophy Championship Race</span>
+                        </h3>
+                        <p class="text-xs text-slate-300 mt-0.5">
+                            Leading academic departments competing for the ultimate University Sports Trophy.
+                        </p>
+                    </div>
+                    <a href="{{ route('results') }}#general-trophy" class="inline-flex items-center text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors">
+                        View Full Standings &rarr;
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    @foreach($topMedalTally as $item)
+                        <div class="bg-slate-900/80 border {{ $item['rank'] === 1 ? 'border-amber-400 bg-amber-950/20 ring-1 ring-amber-400/50' : 'border-slate-800' }} rounded-xl p-4 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-black uppercase tracking-wider {{ $item['rank'] === 1 ? 'text-amber-400' : 'text-slate-400' }}">
+                                        @if($item['rank'] === 1) 🥇 Rank #1 @elseif($item['rank'] === 2) 🥈 Rank #2 @else 🥉 Rank #3 @endif
+                                    </span>
+                                    <span class="text-sm font-black text-amber-400 font-mono">{{ $item['points'] }} PTS</span>
+                                </div>
+                                <h4 class="font-bold text-white text-base">{{ $item['department']->name }}</h4>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-300">
+                                <span>🥇 {{ $item['gold'] }}</span>
+                                <span>🥈 {{ $item['silver'] }}</span>
+                                <span>🥉 {{ $item['bronze'] }}</span>
+                                <span class="font-bold text-slate-400">{{ $item['total_medals'] }} Medals</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
     @else
         <!-- NON-RUNNING STATE: "Next Gala Coming Soon" & Past Highlights -->
         <section class="space-y-10">
 
             <!-- "Next Gala Coming Soon" Banner Card -->
-            <div class="bg-gradient-to-r from-[#022116] to-[#042f20] border-2 border-amber-400/80 rounded-2xl p-8 sm:p-10 text-white shadow-lg relative overflow-hidden">
+            <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
                 <div class="relative z-10 max-w-2xl space-y-3">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/40">
                         Stay Tuned
@@ -198,7 +242,7 @@
                         Preparations for the upcoming Karakoram International University Sports Gala are actively underway! Check back soon for official announcements, participating department rosters, and complete match schedules.
                     </p>
                     <div class="pt-2 flex flex-wrap gap-3">
-                        <a href="{{ route('schedule') }}" class="inline-flex items-center px-4 py-2 bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-sm hover:bg-amber-300 transition-colors">
+                        <a href="{{ route('schedule') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-sm transition-colors">
                             Explore Schedule
                         </a>
                         <a href="{{ route('results') }}" class="inline-flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-xl border border-white/20 transition-colors">

@@ -26,7 +26,7 @@ class PublicLayoutTest extends TestCase
         // Branding and color theme
         $this->assertStringContainsString('KIU', $rendered);
         $this->assertStringContainsString('SPORTS', $rendered);
-        $this->assertStringContainsString('bg-[#042f20]', $rendered); // Dark green
+        $this->assertStringContainsString('bg-[#0a1226]', $rendered); // Modern athletic deep navy
         $this->assertStringContainsString('text-amber-400', $rendered); // Gold
         $this->assertStringContainsString('border-amber-400', $rendered); // Gold border
 

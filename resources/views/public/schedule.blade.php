@@ -6,7 +6,7 @@
 <div class="space-y-8">
 
     <!-- Header & Edition Selection Banner -->
-    <div class="bg-gradient-to-r from-[#022116] via-[#042f20] to-[#022116] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+    <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <span class="text-xs font-bold uppercase tracking-wider text-amber-300">
@@ -26,7 +26,7 @@
                     Select Edition
                 </label>
                 <select name="edition_id" id="edition_id" onchange="this.form.submit()"
-                        class="rounded-xl border-emerald-800 bg-emerald-950/80 text-amber-300 text-xs font-semibold focus:border-amber-400 focus:ring-amber-400 py-2.5 px-4 shadow-sm w-full sm:w-60">
+                        class="rounded-xl border-slate-700 bg-slate-900/90 text-amber-300 text-xs font-semibold focus:border-amber-400 focus:ring-amber-400 py-2.5 px-4 shadow-sm w-full sm:w-60">
                     @foreach ($editions as $edition)
                         <option value="{{ $edition->id }}" {{ $selectedEdition?->id == $edition->id ? 'selected' : '' }}>
                             {{ $edition->title }} ({{ $edition->year }}) &bull; {{ ucfirst($edition->status) }}
@@ -38,6 +38,27 @@
     </div>
 
     @if ($selectedEdition)
+        <!-- View Switcher & Quick Navigation -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#0a1226] text-amber-400 shadow-xs">
+                    📋 List Timetable
+                </span>
+                <a href="{{ route('bracket', ['edition_id' => $selectedEdition->id, 'sport_id' => request('sport_id')]) }}"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                    🌳 Visual Bracket Tree
+                </a>
+                <a href="{{ route('results', ['edition_id' => $selectedEdition->id, 'sport_id' => request('sport_id')]) }}"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                    🏅 Standings & Points
+                </a>
+            </div>
+
+            <div class="text-xs text-slate-500 font-medium">
+                Showing scheduled & completed match timetables
+            </div>
+        </div>
+
         <!-- Filters Toolbar (Sport & Date) -->
         <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-4">
             <form method="GET" action="{{ route('schedule') }}" class="flex flex-col md:flex-row gap-4 items-end">
@@ -118,7 +139,7 @@
                             <div class="grid grid-cols-5 items-center gap-2">
                                 <!-- Team 1 -->
                                 <div class="col-span-2 text-right">
-                                    <div class="font-bold text-slate-900 group-hover:text-emerald-800 transition-colors text-sm sm:text-base leading-tight">
+                                    <div class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm sm:text-base leading-tight">
                                         {{ $fixture->team1->name }}
                                     </div>
                                     <div class="text-[11px] text-slate-400 truncate">{{ $fixture->team1->department->name ?? 'Dept' }}</div>
@@ -139,7 +160,7 @@
 
                                 <!-- Team 2 -->
                                 <div class="col-span-2 text-left">
-                                    <div class="font-bold text-slate-900 group-hover:text-emerald-800 transition-colors text-sm sm:text-base leading-tight">
+                                    <div class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm sm:text-base leading-tight">
                                         {{ $fixture->team2->name }}
                                     </div>
                                     <div class="text-[11px] text-slate-400 truncate">{{ $fixture->team2->department->name ?? 'Dept' }}</div>
@@ -178,7 +199,7 @@
                                 <span>{{ $fixture->venue->name ?? 'Venue TBD' }}</span>
                             </div>
 
-                            <a href="{{ route('matches.show', $fixture) }}" class="inline-flex items-center text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
+                            <a href="{{ route('matches.show', $fixture) }}" class="inline-flex items-center text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
                                 <span>Match Detail & Photos</span> &rarr;
                             </a>
                         </div>

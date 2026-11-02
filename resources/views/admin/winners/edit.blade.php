@@ -63,11 +63,11 @@
                 </div>
             </div>
 
-            <!-- Winner & Runner-up Departments -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Winner, Runner-up & Bronze Departments -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label for="winner_department_id" class="block text-sm font-medium text-slate-700 mb-1">
-                        Winner (Champion) Department
+                        🥇 Champion (Gold)
                     </label>
                     <select name="winner_department_id" id="winner_department_id"
                             class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 @error('winner_department_id') border-rose-300 @enderror">
@@ -85,7 +85,7 @@
 
                 <div>
                     <label for="runner_up_department_id" class="block text-sm font-medium text-slate-700 mb-1">
-                        Runner-Up Department
+                        🥈 Runner-Up (Silver)
                     </label>
                     <select name="runner_up_department_id" id="runner_up_department_id"
                             class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 @error('runner_up_department_id') border-rose-300 @enderror">
@@ -97,6 +97,24 @@
                         @endforeach
                     </select>
                     @error('runner_up_department_id')
+                        <p class="text-rose-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="second_runner_up_department_id" class="block text-sm font-medium text-slate-700 mb-1">
+                        🥉 3rd Place (Bronze)
+                    </label>
+                    <select name="second_runner_up_department_id" id="second_runner_up_department_id"
+                            class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 @error('second_runner_up_department_id') border-rose-300 @enderror">
+                        <option value="">None / Not recorded</option>
+                        @foreach ($departments as $dept)
+                            <option value="{{ $dept->id }}" {{ old('second_runner_up_department_id', $winner->second_runner_up_department_id) == $dept->id ? 'selected' : '' }}>
+                                {{ $dept->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('second_runner_up_department_id')
                         <p class="text-rose-600 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>

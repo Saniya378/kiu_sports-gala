@@ -30,7 +30,25 @@
     </div>
 
     <!-- Report Selection Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Report 0: General Trophy / Medal Tally -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between hover:border-amber-500 transition">
+            <div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xl mb-4 border border-amber-200">
+                    🥇
+                </div>
+                <h3 class="font-bold text-lg text-slate-800">General Trophy Medal Tally</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Overall university championship standings ranked by Gold, Silver, and Bronze medals and total points across departments.
+                </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-100">
+                <a href="{{ route('admin.reports.medals') }}" class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 gap-1.5">
+                    <span>Generate Medal Standings</span> &rarr;
+                </a>
+            </div>
+        </div>
+
         <!-- Report 1: Winners List by Edition -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between hover:border-emerald-500 transition">
             <div>
@@ -87,3 +105,4 @@
     </div>
 </div>
 @endsection
+

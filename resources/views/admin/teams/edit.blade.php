@@ -150,9 +150,15 @@
                     <p class="text-xs text-slate-500 mt-0.5">Manage athletes registered in this team. Add or remove players inline.</p>
                 </div>
             </div>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                {{ $team->players->count() }} {{ Str::plural('Player', $team->players->count()) }}
-            </span>
+            <div class="flex items-center space-x-2">
+                <a href="{{ route('teams.id-cards', $team) }}" target="_blank"
+                   class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors">
+                    <span class="mr-1">🪪</span> Print Squad Passes
+                </a>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    {{ $team->players->count() }} {{ Str::plural('Player', $team->players->count()) }}
+                </span>
+            </div>
         </div>
 
         <!-- Add Player Inline Form -->
@@ -247,13 +253,21 @@
                                     {{ $player->contact ?? '-' }}
                                 </td>
                                 <td class="py-3 px-6 text-right whitespace-nowrap">
-                                    <form method="POST" action="{{ route('admin.teams.players.destroy', [$team, $player]) }}" onsubmit="return confirm('Remove player {{ $player->name }} from this team?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="px-2.5 py-1 text-xs font-semibold rounded text-rose-600 hover:bg-rose-50 transition-colors">
-                                            Remove
-                                        </button>
-                                    </form>
+                                    <div class="inline-flex items-center space-x-1 justify-end">
+                                        <a href="{{ route('players.card', $player) }}" target="_blank"
+                                           class="px-2.5 py-1 text-xs font-semibold rounded text-indigo-600 hover:bg-indigo-50 border border-indigo-200 transition-colors inline-flex items-center"
+                                           title="View Official Player ID Card & QR">
+                                            🪪 Pass
+                                        </a>
+
+                                        <form method="POST" action="{{ route('admin.teams.players.destroy', [$team, $player]) }}" onsubmit="return confirm('Remove player {{ $player->name }} from this team?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-2.5 py-1 text-xs font-semibold rounded text-rose-600 hover:bg-rose-50 transition-colors">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

@@ -17,6 +17,7 @@ class Winner extends Model
         'sport_id',
         'winner_department_id',
         'runner_up_department_id',
+        'second_runner_up_department_id',
         'final_score',
     ];
 
@@ -50,6 +51,22 @@ class Winner extends Model
     public function runnerUpDepartment(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'runner_up_department_id');
+    }
+
+    /**
+     * Get the second runner-up / bronze medal department.
+     */
+    public function secondRunnerUpDepartment(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'second_runner_up_department_id');
+    }
+
+    /**
+     * Alias for second runner-up / bronze department.
+     */
+    public function bronzeDepartment(): BelongsTo
+    {
+        return $this->secondRunnerUpDepartment();
     }
 }
 

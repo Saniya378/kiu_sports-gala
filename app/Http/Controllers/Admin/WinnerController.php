@@ -19,7 +19,7 @@ class WinnerController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Winner::with(['edition', 'sport', 'winnerDepartment', 'runnerUpDepartment']);
+        $query = Winner::with(['edition', 'sport', 'winnerDepartment', 'runnerUpDepartment', 'secondRunnerUpDepartment']);
 
         if ($request->filled('edition_id')) {
             $query->where('edition_id', $request->edition_id);
@@ -69,10 +69,12 @@ class WinnerController extends Controller
             ],
             'winner_department_id' => ['nullable', 'exists:departments,id'],
             'runner_up_department_id' => ['nullable', 'exists:departments,id', 'different:winner_department_id'],
+            'second_runner_up_department_id' => ['nullable', 'exists:departments,id', 'different:winner_department_id', 'different:runner_up_department_id'],
             'final_score' => ['nullable', 'string', 'max:255'],
         ], [
             'sport_id.unique' => 'A winner record already exists for this edition and sport.',
             'runner_up_department_id.different' => 'The runner-up department cannot be the same as the winner department.',
+            'second_runner_up_department_id.different' => 'The bronze medal department must be distinct from winner and runner-up departments.',
         ]);
 
         Winner::create($validated);
@@ -109,10 +111,12 @@ class WinnerController extends Controller
             ],
             'winner_department_id' => ['nullable', 'exists:departments,id'],
             'runner_up_department_id' => ['nullable', 'exists:departments,id', 'different:winner_department_id'],
+            'second_runner_up_department_id' => ['nullable', 'exists:departments,id', 'different:winner_department_id', 'different:runner_up_department_id'],
             'final_score' => ['nullable', 'string', 'max:255'],
         ], [
             'sport_id.unique' => 'A winner record already exists for this edition and sport.',
             'runner_up_department_id.different' => 'The runner-up department cannot be the same as the winner department.',
+            'second_runner_up_department_id.different' => 'The bronze medal department must be distinct from winner and runner-up departments.',
         ]);
 
         $winner->update($validated);

@@ -10,6 +10,8 @@ use App\Models\News;
 use App\Models\Sport;
 use App\Models\Team;
 use App\Models\Winner;
+use App\Services\BracketService;
+use App\Services\MedalTallyService;
 use App\Services\PointsTableService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -22,12 +24,13 @@ class PublicController extends Controller
      * Shows latest edition banner. If running, shows today's matches.
      * Else shows "Next gala coming soon" and highlights of the latest completed edition.
      */
-    public function home(): View
+    public function home(MedalTallyService $medalTallyService): View
     {
         $latestEdition = Edition::orderBy('year', 'desc')->first();
 
         $todayMatches = collect();
         $completedEdition = null;
+        $topMedalTally = $latestEdition ? $medalTallyService->calculateForEdition($latestEdition)->take(3) : collect();
 
         if ($latestEdition && $latestEdition->status === 'running') {
             $todayMatches = Fixture::with(['sport', 'team1.department', 'team2.department', 'venue', 'result'])
@@ -48,7 +51,7 @@ class PublicController extends Controller
             ->first();
         }
 
-        return view('public.home', compact('latestEdition', 'todayMatches', 'completedEdition'));
+        return view('public.home', compact('latestEdition', 'todayMatches', 'completedEdition', 'topMedalTally'));
     }
 
     /**
@@ -123,6 +126,34 @@ class PublicController extends Controller
     }
 
     /**
+     * Display Tournament Knockout Bracket Tree.
+     * Select edition and sport to view quarter finals, semi finals, final and champion.
+     */
+    public function bracket(Request $request, BracketService $bracketService): View
+    {
+        $editions = Edition::orderBy('year', 'desc')->get();
+        $selectedEditionId = $request->input('edition_id') ?? $editions->firstWhere('status', 'running')?->id ?? $editions->first()?->id;
+        $selectedEdition = $selectedEditionId ? Edition::find($selectedEditionId) : null;
+
+        $sports = Sport::orderBy('name')->get();
+        $selectedSportId = $request->input('sport_id') ?? $sports->first()?->id;
+        $selectedSport = $selectedSportId ? Sport::find($selectedSportId) : null;
+
+        $bracketData = [
+            'has_knockout' => false,
+            'rounds' => collect(),
+            'champion' => null,
+            'total_matches' => 0,
+        ];
+
+        if ($selectedEdition && $selectedSport) {
+            $bracketData = $bracketService->getBracket($selectedEdition, $selectedSport);
+        }
+
+        return view('public.bracket', compact('editions', 'selectedEdition', 'sports', 'selectedSport', 'bracketData'));
+    }
+
+    /**
      * Display Match Detail.
      * Shows teams, scores, venue, round, lineups/players, and match photos grid.
      */
@@ -137,6 +168,7 @@ class PublicController extends Controller
             'team2.players',
             'venue',
             'result.winnerTeam',
+            'result.playerOfTheMatch.team.department',
             'photos.uploader',
         ]);
 
@@ -147,7 +179,7 @@ class PublicController extends Controller
      * Display Results and Points Table per edition and sport.
      * Uses an edition selector that defaults to the latest edition.
      */
-    public function results(Request $request, PointsTableService $pointsTableService): View
+    public function results(Request $request, PointsTableService $pointsTableService, MedalTallyService $medalTallyService): View
     {
         $editions = Edition::orderBy('year', 'desc')->get();
         $selectedEditionId = $request->input('edition_id') ?? $editions->first()?->id;
@@ -159,6 +191,7 @@ class PublicController extends Controller
 
         $completedFixtures = collect();
         $standings = collect();
+        $medalTally = $selectedEdition ? $medalTallyService->calculateForEdition($selectedEdition) : collect();
 
         if ($selectedEdition && $selectedSport) {
             // All completed fixtures with results for selected edition & sport
@@ -167,6 +200,7 @@ class PublicController extends Controller
                 'team2.department',
                 'venue',
                 'result.winnerTeam',
+                'result.playerOfTheMatch',
                 'photos',
             ])
             ->where('edition_id', $selectedEdition->id)
@@ -186,7 +220,8 @@ class PublicController extends Controller
             'sports',
             'selectedSport',
             'completedFixtures',
-            'standings'
+            'standings',
+            'medalTally'
         ));
     }
 
@@ -434,13 +469,43 @@ class PublicController extends Controller
     {
         $news->load('edition');
 
-        $recentNews = News::published()
+        $recentNews = News::with('edition')
+            ->published()
             ->where('id', '!=', $news->id)
             ->latest('published_at')
             ->take(3)
             ->get();
 
         return view('public.news.show', compact('news', 'recentNews'));
+    }
+
+    /**
+     * Display Participating Teams and Squad Rosters.
+     */
+    public function teams(Request $request): View
+    {
+        $editions = Edition::orderBy('year', 'desc')->get();
+        $selectedEditionId = $request->input('edition_id') ?? $editions->first()?->id;
+        $selectedEdition = $selectedEditionId ? Edition::find($selectedEditionId) : null;
+
+        $sports = Sport::orderBy('name')->get();
+        $selectedSportId = $request->input('sport_id');
+
+        $teams = collect();
+        if ($selectedEdition) {
+            $query = Team::with(['sport', 'department', 'players'])
+                ->where('edition_id', $selectedEdition->id)
+                ->where('status', 'approved')
+                ->orderBy('name');
+
+            if ($selectedSportId) {
+                $query->where('sport_id', $selectedSportId);
+            }
+
+            $teams = $query->get();
+        }
+
+        return view('public.teams', compact('editions', 'selectedEdition', 'sports', 'selectedSportId', 'teams'));
     }
 
     /**

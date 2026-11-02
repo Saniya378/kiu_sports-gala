@@ -9,6 +9,7 @@ use App\Models\Fixture;
 use App\Models\Sport;
 use App\Models\Team;
 use App\Models\Winner;
+use App\Services\MedalTallyService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,6 +31,27 @@ class ReportController extends Controller
             'fixturesCount',
             'teamsCount',
             'winnersCount'
+        ));
+    }
+
+    /**
+     * Print-friendly report: Department Medal Tally (General Trophy Standings).
+     */
+    public function medals(Request $request, MedalTallyService $medalTallyService): View
+    {
+        $editions = Edition::orderBy('year', 'desc')->get();
+        $selectedEditionId = $request->input('edition_id') ?? $editions->first()?->id;
+        $selectedEdition = $selectedEditionId ? Edition::find($selectedEditionId) : null;
+
+        $medalTally = collect();
+        if ($selectedEdition) {
+            $medalTally = $medalTallyService->calculateForEdition($selectedEdition);
+        }
+
+        return view('admin.reports.medals', compact(
+            'editions',
+            'selectedEdition',
+            'medalTally'
         ));
     }
 
@@ -122,3 +144,4 @@ class ReportController extends Controller
         ));
     }
 }
+
