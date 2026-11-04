@@ -17,7 +17,9 @@ use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WinnerController;
+use App\Http\Controllers\CeremonyController;
 use App\Http\Controllers\Coordinator\CoordinatorTeamController;
+use App\Http\Controllers\FanEngagementController;
 use App\Http\Controllers\LiveScoreController;
 use App\Http\Controllers\PlayerPassController;
 use App\Http\Controllers\ProfileController;
@@ -27,6 +29,11 @@ use Illuminate\Support\Facades\Route;
 // Live Scores API (Polling & Real-time updates)
 Route::get('/api/live-scores', [LiveScoreController::class, 'index'])->name('api.live-scores.index');
 Route::get('/api/matches/{fixture}/live', [LiveScoreController::class, 'show'])->name('api.live-scores.show');
+
+// Fan Engagement & Spectator Reactions
+Route::post('/matches/{fixture}/vote', [FanEngagementController::class, 'vote'])->name('matches.vote');
+Route::post('/matches/{fixture}/react', [FanEngagementController::class, 'react'])->name('matches.react');
+Route::get('/matches/{fixture}/fan-stats', [FanEngagementController::class, 'stats'])->name('matches.fan-stats');
 
 // Player Digital Pass & Accreditation Verification
 Route::get('/players/{player}/card', [PlayerPassController::class, 'show'])->name('players.card');
@@ -48,6 +55,10 @@ Route::get('/news/{news}', [PublicController::class, 'newsShow'])->name('news.sh
 Route::get('/teams', [PublicController::class, 'teams'])->name('teams.public');
 Route::get('/about', [PublicController::class, 'about'])->name('about');
 Route::get('/contact', [PublicController::class, 'about'])->name('contact');
+
+// Closing Ceremony & Auditorium Big Screen Mode
+Route::get('/ceremony', [CeremonyController::class, 'index'])->name('ceremony');
+Route::get('/presentation', [CeremonyController::class, 'index'])->name('presentation');
 
 // Convenient aliases
 Route::get('/matches/today', [PublicController::class, 'today'])->name('matches.today');

@@ -256,6 +256,234 @@
         </div>
     </div>
 
+    <!-- Department Fan Zone: Cheer & Match Winner Poll -->
+    <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border-2 border-amber-400/70 rounded-2xl p-6 md:p-8 shadow-xl text-white relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-64 h-64 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <!-- Section Header -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-slate-800">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
+                        Fan Engagement
+                    </span>
+                    <span class="text-xs text-amber-300 font-semibold flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        Live Department Fan Zone
+                    </span>
+                </div>
+                <h3 class="text-xl md:text-2xl font-black text-white mt-1">
+                    Cheer for Your Department &amp; Predict the Winner
+                </h3>
+                <p class="text-xs md:text-sm text-slate-300 mt-0.5">
+                    Tap to predict match outcome and send live emoji cheers to the stadium ground!
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="fan-total-interactions-pill" class="text-xs font-bold text-amber-300 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+                    👥 {{ ($fixture->fan_vote_stats['total'] ?? 0) + array_sum($fixture->reactions_stats ?? []) }} Spectators Engaged
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6">
+            <!-- Col 1: Winner Prediction Poll (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                        <span>🗳️</span>
+                        <span>Who will win this match?</span>
+                    </h4>
+                    <span id="poll-total-votes-label" class="text-xs text-slate-400 font-medium">
+                        {{ $fixture->fan_vote_stats['total'] ?? 0 }} {{ Str::plural('vote', $fixture->fan_vote_stats['total'] ?? 0) }}
+                    </span>
+                </div>
+
+                @php
+                    $pollStats = $fixture->fan_vote_stats;
+                    $team1 = $fixture->team1;
+                    $team2 = $fixture->team2;
+                @endphp
+
+                <!-- Interactive Poll Buttons -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Vote Team 1 -->
+                    <button type="button"
+                            onclick="castFanVote({{ $team1?->id }})"
+                            id="vote-btn-{{ $team1?->id }}"
+                            class="fan-vote-btn group text-left p-4 rounded-xl border transition-all flex flex-col justify-between relative overflow-hidden {{ ($userVotedTeamId ?? null) == $team1?->id ? 'bg-amber-500/20 border-amber-400 text-white shadow-md shadow-amber-500/10' : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 text-slate-200 hover:border-amber-400/60' }}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-300">Team 1</span>
+                                <h5 class="text-base font-black text-white group-hover:text-amber-300 transition-colors">
+                                    {{ $team1?->name ?? 'Team 1' }}
+                                </h5>
+                                <p class="text-xs text-slate-300 mt-0.5">
+                                    {{ $team1?->department?->name ?? 'Dept 1' }}
+                                </p>
+                            </div>
+                            <span class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-sm font-bold group-hover:scale-110 transition-transform">
+                                👈
+                            </span>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-700/60">
+                            <span id="poll-pct-team1" class="text-base font-black text-amber-400 font-mono">
+                                {{ $pollStats['team1_percentage'] }}%
+                            </span>
+                            <span id="poll-count-team1" class="text-xs text-slate-400">
+                                {{ $pollStats['team1_votes'] }} votes
+                            </span>
+                        </div>
+                    </button>
+
+                    <!-- Vote Team 2 -->
+                    <button type="button"
+                            onclick="castFanVote({{ $team2?->id }})"
+                            id="vote-btn-{{ $team2?->id }}"
+                            class="fan-vote-btn group text-left p-4 rounded-xl border transition-all flex flex-col justify-between relative overflow-hidden {{ ($userVotedTeamId ?? null) == $team2?->id ? 'bg-amber-500/20 border-amber-400 text-white shadow-md shadow-amber-500/10' : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 text-slate-200 hover:border-amber-400/60' }}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-300">Team 2</span>
+                                <h5 class="text-base font-black text-white group-hover:text-amber-300 transition-colors">
+                                    {{ $team2?->name ?? 'Team 2' }}
+                                </h5>
+                                <p class="text-xs text-slate-300 mt-0.5">
+                                    {{ $team2?->department?->name ?? 'Dept 2' }}
+                                </p>
+                            </div>
+                            <span class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-sm font-bold group-hover:scale-110 transition-transform">
+                                👉
+                            </span>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-700/60">
+                            <span id="poll-pct-team2" class="text-base font-black text-amber-400 font-mono">
+                                {{ $pollStats['team2_percentage'] }}%
+                            </span>
+                            <span id="poll-count-team2" class="text-xs text-slate-400">
+                                {{ $pollStats['team2_votes'] }} votes
+                            </span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Dual-colored Progress bar -->
+                <div class="space-y-1.5">
+                    <div class="w-full h-3 rounded-full bg-slate-800 overflow-hidden flex border border-slate-700/80">
+                        <div id="poll-bar-team1"
+                             style="width: {{ $pollStats['team1_percentage'] }}%"
+                             class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500"></div>
+                        <div id="poll-bar-team2"
+                             style="width: {{ $pollStats['team2_percentage'] }}%"
+                             class="h-full bg-gradient-to-r from-amber-500 to-orange-600 transition-all duration-500"></div>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                            {{ $team1?->name }}
+                        </span>
+                        <span id="poll-status-message" class="text-amber-300 font-bold">
+                            @if($userVotedTeamId)
+                                ✓ You predicted {{ $userVotedTeamId == $team1?->id ? $team1?->name : $team2?->name }}
+                            @else
+                                Tap your team to vote!
+                            @endif
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            {{ $team2?->name }}
+                            <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 2: Live Emoji Cheer Reactions (5 cols) -->
+            <div class="lg:col-span-5 space-y-4">
+                <div>
+                    <h4 class="text-sm font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                        <span>🎉</span>
+                        <span>Send Live Cheers to Ground</span>
+                    </h4>
+                    <p class="text-xs text-slate-300 mt-0.5">
+                        Tap repeatedly to hype up the atmosphere and show department pride!
+                    </p>
+                </div>
+
+                @php
+                    $reactions = $fixture->reactions_stats;
+                @endphp
+
+                <div class="grid grid-cols-2 gap-3 relative">
+                    <!-- Floating reactions container -->
+                    <div id="floating-reactions-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+
+                    <!-- Cheer: Fire -->
+                    <button type="button"
+                            onclick="sendReaction('fire', this)"
+                            class="reaction-btn p-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-amber-400 rounded-xl flex items-center justify-between text-left transition-all active:scale-95 group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl group-hover:scale-125 transition-transform">🔥</span>
+                            <div>
+                                <span class="text-xs font-bold text-white block">Fire</span>
+                                <span class="text-[10px] text-slate-400">Pure Hype</span>
+                            </div>
+                        </div>
+                        <span id="reaction-count-fire" class="text-sm font-black text-amber-400 font-mono">
+                            {{ $reactions['fire'] ?? 0 }}
+                        </span>
+                    </button>
+
+                    <!-- Cheer: Clap -->
+                    <button type="button"
+                            onclick="sendReaction('clap', this)"
+                            class="reaction-btn p-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-amber-400 rounded-xl flex items-center justify-between text-left transition-all active:scale-95 group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl group-hover:scale-125 transition-transform">👏</span>
+                            <div>
+                                <span class="text-xs font-bold text-white block">Claps</span>
+                                <span class="text-[10px] text-slate-400">Respect</span>
+                            </div>
+                        </div>
+                        <span id="reaction-count-clap" class="text-sm font-black text-amber-400 font-mono">
+                            {{ $reactions['clap'] ?? 0 }}
+                        </span>
+                    </button>
+
+                    <!-- Cheer: Cheer / Rocket -->
+                    <button type="button"
+                            onclick="sendReaction('cheer', this)"
+                            class="reaction-btn p-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-amber-400 rounded-xl flex items-center justify-between text-left transition-all active:scale-95 group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl group-hover:scale-125 transition-transform">🚀</span>
+                            <div>
+                                <span class="text-xs font-bold text-white block">Power</span>
+                                <span class="text-[10px] text-slate-400">Let's Go!</span>
+                            </div>
+                        </div>
+                        <span id="reaction-count-cheer" class="text-sm font-black text-amber-400 font-mono">
+                            {{ $reactions['cheer'] ?? 0 }}
+                        </span>
+                    </button>
+
+                    <!-- Cheer: Trophy -->
+                    <button type="button"
+                            onclick="sendReaction('trophy', this)"
+                            class="reaction-btn p-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-amber-400 rounded-xl flex items-center justify-between text-left transition-all active:scale-95 group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl group-hover:scale-125 transition-transform">🏆</span>
+                            <div>
+                                <span class="text-xs font-bold text-white block">KIU Pride</span>
+                                <span class="text-[10px] text-slate-400">Champions</span>
+                            </div>
+                        </div>
+                        <span id="reaction-count-trophy" class="text-sm font-black text-amber-400 font-mono">
+                            {{ $reactions['trophy'] ?? 0 }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Match Events & Commentary Timeline -->
     <div class="space-y-4">
         <div class="flex items-center justify-between">
@@ -697,12 +925,170 @@
             }
         }
 
+        // Fan Engagement: Poll & Reactions Sync
+        const fanStatsEndpoint = "{{ route('matches.fan-stats', $fixture) }}";
+
+        async function fetchFanStats() {
+            try {
+                const res = await fetch(fanStatsEndpoint, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.poll) updateFanPollUI(data.poll, data.user_voted_team_id);
+                if (data.reactions) updateReactionCounts(data.reactions);
+            } catch (e) {
+                // Ignore transient fan poll sync issues
+            }
+        }
+
+        function updateFanPollUI(stats, userVotedTeamId, message) {
+            if (!stats) return;
+
+            const bar1 = document.getElementById('poll-bar-team1');
+            const bar2 = document.getElementById('poll-bar-team2');
+            const pct1 = document.getElementById('poll-pct-team1');
+            const pct2 = document.getElementById('poll-pct-team2');
+            const count1 = document.getElementById('poll-count-team1');
+            const count2 = document.getElementById('poll-count-team2');
+            const totalLabel = document.getElementById('poll-total-votes-label');
+            const statusMsg = document.getElementById('poll-status-message');
+
+            if (bar1) bar1.style.width = `${stats.team1_percentage}%`;
+            if (bar2) bar2.style.width = `${stats.team2_percentage}%`;
+            if (pct1) pct1.textContent = `${stats.team1_percentage}%`;
+            if (pct2) pct2.textContent = `${stats.team2_percentage}%`;
+            if (count1) count1.textContent = `${stats.team1_votes} votes`;
+            if (count2) count2.textContent = `${stats.team2_votes} votes`;
+            if (totalLabel) totalLabel.textContent = `${stats.total} ${stats.total === 1 ? 'vote' : 'votes'}`;
+
+            if (userVotedTeamId) {
+                document.querySelectorAll('.fan-vote-btn').forEach(btn => {
+                    btn.classList.remove('bg-amber-500/20', 'border-amber-400', 'shadow-md', 'shadow-amber-500/10');
+                    btn.classList.add('bg-slate-800/80', 'border-slate-700');
+                });
+                const votedBtn = document.getElementById(`vote-btn-${userVotedTeamId}`);
+                if (votedBtn) {
+                    votedBtn.classList.remove('bg-slate-800/80', 'border-slate-700');
+                    votedBtn.classList.add('bg-amber-500/20', 'border-amber-400', 'shadow-md', 'shadow-amber-500/10');
+                }
+            }
+
+            if (message && statusMsg) {
+                statusMsg.textContent = message;
+            }
+        }
+
+        function updateReactionCounts(reactions) {
+            if (!reactions) return;
+            Object.keys(reactions).forEach(key => {
+                const el = document.getElementById(`reaction-count-${key}`);
+                if (el) el.textContent = reactions[key];
+            });
+        }
+
+        function spawnFloatingEmoji(type, btnEl) {
+            const emojis = { fire: '🔥', clap: '👏', cheer: '🚀', trophy: '🏆' };
+            const emojiChar = emojis[type] || '🔥';
+
+            const container = document.getElementById('floating-reactions-container');
+            if (!container) return;
+
+            const span = document.createElement('span');
+            span.textContent = emojiChar;
+            span.className = 'absolute pointer-events-none text-2xl transition-all duration-1000 ease-out select-none';
+
+            const rect = btnEl ? btnEl.getBoundingClientRect() : null;
+            const contRect = container.getBoundingClientRect();
+
+            let left = contRect.width / 2;
+            let top = contRect.height - 20;
+
+            if (rect && contRect) {
+                left = (rect.left - contRect.left) + rect.width / 2;
+                top = (rect.top - contRect.top) + rect.height / 2;
+            }
+
+            span.style.left = `${left + (Math.random() * 40 - 20)}px`;
+            span.style.top = `${top}px`;
+            span.style.opacity = '1';
+            span.style.transform = 'translateY(0) scale(1)';
+
+            container.appendChild(span);
+
+            requestAnimationFrame(() => {
+                span.style.opacity = '0';
+                span.style.transform = `translateY(-90px) scale(${1.3 + Math.random() * 0.4}) rotate(${Math.random() * 40 - 20}deg)`;
+            });
+
+            setTimeout(() => {
+                span.remove();
+            }, 1100);
+        }
+
+        // Global functions for inline onclick handlers
+        window.castFanVote = async function(teamId) {
+            if (!teamId) return;
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const res = await fetch("{{ route('matches.vote', $fixture) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify({ team_id: teamId })
+                });
+                const data = await res.json();
+                if (data.success && data.stats) {
+                    updateFanPollUI(data.stats, data.user_voted_team_id, data.message);
+                }
+            } catch (err) {
+                console.error("Fan vote error:", err);
+            }
+        };
+
+        window.sendReaction = async function(type, btnEl) {
+            spawnFloatingEmoji(type, btnEl);
+
+            const countEl = document.getElementById(`reaction-count-${type}`);
+            if (countEl) {
+                const cur = parseInt(countEl.textContent.trim()) || 0;
+                countEl.textContent = cur + 1;
+                countEl.classList.add('scale-125', 'text-amber-300');
+                setTimeout(() => countEl.classList.remove('scale-125', 'text-amber-300'), 300);
+            }
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const res = await fetch("{{ route('matches.react', $fixture) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify({ reaction: type })
+                });
+                const data = await res.json();
+                if (data.success && data.reactions) {
+                    updateReactionCounts(data.reactions);
+                }
+            } catch (err) {
+                console.error("Reaction send error:", err);
+            }
+        };
+
         // Initial sync and set polling interval
         fetchLiveMatch();
 
         // Poll every 5s if live, 8s if scheduled, 30s if completed
         const intervalMs = (currentStatus === 'live') ? 5000 : (currentStatus === 'scheduled' ? 8000 : 30000);
-        setInterval(fetchLiveMatch, intervalMs);
+        setInterval(() => {
+            fetchLiveMatch();
+            fetchFanStats();
+        }, intervalMs);
     })();
 </script>
 @endpush

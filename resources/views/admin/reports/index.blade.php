@@ -117,9 +117,31 @@
                     CSV
                 </a>
             </div>
-                    <span>Generate Teams Report</span> &rarr;
-                </a>
+        </div>
+    </div>
+
+    <!-- Auditorium Big Screen Ceremony Feature Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 border border-amber-500/30 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
+                    Grand Ceremony Mode
+                </span>
+                <span class="text-xs text-amber-300 font-semibold">Projector &amp; LED Big-Screen Ready</span>
             </div>
+            <h3 class="text-xl font-black text-white">Auditorium Closing Ceremony Presentation</h3>
+            <p class="text-xs text-slate-300 max-w-xl">
+                Launch interactive full-screen award ceremony slides with champion spotlights, department medal tallies, confetti effects, and keyboard shortcuts (<kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-amber-300">F</kbd> for fullscreen, <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-amber-300">C</kbd> for confetti).
+            </p>
+        </div>
+        <div class="shrink-0">
+            <a href="{{ route('ceremony') }}" target="_blank"
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 transition">
+                <span>🏆 Launch Ceremony Screen</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+            </a>
         </div>
     </div>
 </div>

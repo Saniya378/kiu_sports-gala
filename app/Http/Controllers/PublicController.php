@@ -174,7 +174,11 @@ class PublicController extends Controller
             'events.player',
         ]);
 
-        return view('public.match-detail', compact('fixture'));
+        $userVotedTeamId = \App\Models\MatchFanVote::where('fixture_id', $fixture->id)
+            ->where('session_id', request()->session()->getId())
+            ->value('team_id');
+
+        return view('public.match-detail', compact('fixture', 'userVotedTeamId'));
     }
 
     /**

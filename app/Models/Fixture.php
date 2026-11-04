@@ -104,6 +104,54 @@ class Fixture extends Model
     }
 
     /**
+     * Get fan predictions / votes for this fixture.
+     */
+    public function fanVotes(): HasMany
+    {
+        return $this->hasMany(MatchFanVote::class);
+    }
+
+    /**
+     * Get spectator live emoji cheer reactions for this fixture.
+     */
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(MatchReaction::class);
+    }
+
+    /**
+     * Get computed breakdown of fan votes.
+     */
+    public function getFanVoteStatsAttribute(): array
+    {
+        $team1Votes = $this->fanVotes()->where('team_id', $this->team1_id)->count();
+        $team2Votes = $this->fanVotes()->where('team_id', $this->team2_id)->count();
+        $totalVotes = $team1Votes + $team2Votes;
+
+        $team1Pct = $totalVotes > 0 ? (int) round(($team1Votes / $totalVotes) * 100) : 50;
+        $team2Pct = $totalVotes > 0 ? (100 - $team1Pct) : 50;
+
+        return [
+            'total' => $totalVotes,
+            'team1_votes' => $team1Votes,
+            'team2_votes' => $team2Votes,
+            'team1_percentage' => $team1Pct,
+            'team2_percentage' => $team2Pct,
+        ];
+    }
+
+    /**
+     * Get reactions counts dictionary.
+     */
+    public function getReactionsStatsAttribute(): array
+    {
+        $defaults = ['fire' => 0, 'clap' => 0, 'cheer' => 0, 'trophy' => 0];
+        $existing = $this->reactions()->pluck('count', 'reaction')->toArray();
+
+        return array_merge($defaults, $existing);
+    }
+
+    /**
      * Determine if the fixture has a video stream configured.
      */
     public function hasLiveStream(): bool
