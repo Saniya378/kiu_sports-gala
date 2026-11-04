@@ -101,11 +101,11 @@
             <div class="lg:col-span-3 text-center my-4 lg:my-0" id="center-score-container">
                 <div class="inline-flex items-center justify-center gap-4 bg-[#040813]/90 px-6 py-4 rounded-2xl border border-amber-400/50 shadow-inner">
                     <span id="team1-score-display" class="text-4xl md:text-5xl font-black transition-all duration-300 {{ $fixture->result && $fixture->result->winner_team_id === $fixture->team1_id ? 'text-amber-400' : 'text-white' }}">
-                        {{ $fixture->result ? $fixture->result->team1_score : '-' }}
+                        {{ $fixture->result ? $fixture->formatTeamScore(1) : '-' }}
                     </span>
                     <span class="text-2xl font-light text-slate-500">:</span>
                     <span id="team2-score-display" class="text-4xl md:text-5xl font-black transition-all duration-300 {{ $fixture->result && $fixture->result->winner_team_id === $fixture->team2_id ? 'text-amber-400' : 'text-white' }}">
-                        {{ $fixture->result ? $fixture->result->team2_score : '-' }}
+                        {{ $fixture->result ? $fixture->formatTeamScore(2) : '-' }}
                     </span>
                 </div>
                 <div id="score-label" class="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-300">

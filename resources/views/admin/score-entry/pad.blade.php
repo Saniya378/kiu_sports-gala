@@ -35,7 +35,11 @@
     $isVolleyball = str_contains($sportName, 'volleyball') || str_contains($sportName, 'badminton') || str_contains($sportName, 'tennis');
 
     $t1Score = old('team1_score', $fixture->result->team1_score ?? 0);
+    $t1Wickets = old('team1_wickets', $fixture->result->team1_wickets ?? '');
+    $t1Overs = old('team1_overs', $fixture->result->team1_overs ?? '');
     $t2Score = old('team2_score', $fixture->result->team2_score ?? 0);
+    $t2Wickets = old('team2_wickets', $fixture->result->team2_wickets ?? '');
+    $t2Overs = old('team2_overs', $fixture->result->team2_overs ?? '');
     $currentStatus = old('status', $fixture->status);
     $potmId = old('player_of_the_match_id', $fixture->result->player_of_the_match_id ?? '');
     $summary = old('summary', $fixture->result->summary ?? '');
@@ -182,6 +186,27 @@
                             <button type="button" onclick="setScore('team1_score', 0)" class="py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 active:scale-95 font-bold text-xs text-rose-700 transition-all">0</button>
                         @endif
                     </div>
+                    @if ($isCricket)
+                        <div class="grid grid-cols-2 gap-2.5 pt-3 mt-3 border-t border-slate-100">
+                            <div>
+                                <label for="team1_wickets" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                                    Wickets (0-10)
+                                </label>
+                                <div class="flex items-center space-x-1">
+                                    <input type="number" id="team1_wickets" name="team1_wickets" value="{{ $t1Wickets }}" min="0" max="10" placeholder="0"
+                                           class="w-full text-center rounded-xl border border-slate-200 py-1.5 text-xs font-black text-slate-800">
+                                    <button type="button" onclick="adjustScore('team1_wickets', 1)" class="px-2.5 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs transition-colors">+W</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="team1_overs" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                                    Overs Completed
+                                </label>
+                                <input type="text" id="team1_overs" name="team1_overs" value="{{ $t1Overs }}" placeholder="e.g. 20.0"
+                                       class="w-full text-center rounded-xl border border-slate-200 py-1.5 text-xs font-bold text-slate-800">
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -248,6 +273,27 @@
                             <button type="button" onclick="setScore('team2_score', 0)" class="py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 active:scale-95 font-bold text-xs text-rose-700 transition-all">0</button>
                         @endif
                     </div>
+                    @if ($isCricket)
+                        <div class="grid grid-cols-2 gap-2.5 pt-3 mt-3 border-t border-slate-100">
+                            <div>
+                                <label for="team2_wickets" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                                    Wickets (0-10)
+                                </label>
+                                <div class="flex items-center space-x-1">
+                                    <input type="number" id="team2_wickets" name="team2_wickets" value="{{ $t2Wickets }}" min="0" max="10" placeholder="0"
+                                           class="w-full text-center rounded-xl border border-slate-200 py-1.5 text-xs font-black text-slate-800">
+                                    <button type="button" onclick="adjustScore('team2_wickets', 1)" class="px-2.5 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs transition-colors">+W</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="team2_overs" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                                    Overs Completed
+                                </label>
+                                <input type="text" id="team2_overs" name="team2_overs" value="{{ $t2Overs }}" placeholder="e.g. 20.0"
+                                       class="w-full text-center rounded-xl border border-slate-200 py-1.5 text-xs font-bold text-slate-800">
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 

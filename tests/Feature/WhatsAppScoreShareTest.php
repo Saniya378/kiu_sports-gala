@@ -198,4 +198,35 @@ class WhatsAppScoreShareTest extends TestCase
         ]);
         $this->assertStringContainsString('https://api.whatsapp.com/send?text=', $response->json('whatsapp_share_url'));
     }
+
+    public function test_cricket_match_whatsapp_and_score_formats_wickets_and_overs(): void
+    {
+        $fixture = Fixture::create([
+            'edition_id' => $this->edition->id,
+            'sport_id' => $this->cricket->id,
+            'team1_id' => $this->team1->id,
+            'team2_id' => $this->team2->id,
+            'venue_id' => $this->venue->id,
+            'status' => 'live',
+        ]);
+
+        Result::create([
+            'fixture_id' => $fixture->id,
+            'team1_score' => 165,
+            'team1_wickets' => 6,
+            'team1_overs' => '20.0',
+            'team2_score' => 78,
+            'team2_wickets' => 3,
+            'team2_overs' => '9.4',
+        ]);
+
+        $fixture->refresh();
+
+        $this->assertEquals('165/6 (20.0 ov)', $fixture->formatTeamScore(1));
+        $this->assertEquals('78/3 (9.4 ov)', $fixture->formatTeamScore(2));
+
+        $text = $fixture->whatsapp_share_text;
+        $this->assertStringContainsString('165/6 (20.0 ov)', $text);
+        $this->assertStringContainsString('78/3 (9.4 ov)', $text);
+    }
 }

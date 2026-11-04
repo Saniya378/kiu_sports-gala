@@ -140,4 +140,37 @@ class PointsTableTest extends TestCase
         $response->assertSee('Beta Knights');
         $response->assertSee('Gamma Champions');
     }
+
+    public function test_cricket_points_table_awards_two_points_per_win(): void
+    {
+        $edition = Edition::create(['title' => 'Gala 2026', 'year' => 2026, 'status' => 'running']);
+        $cricket = Sport::create(['name' => 'Cricket Men', 'category' => 'boys']);
+        $deptA = Department::create(['name' => 'CS Dept']);
+        $deptB = Department::create(['name' => 'BBA Dept']);
+
+        $teamA = Team::create(['edition_id' => $edition->id, 'sport_id' => $cricket->id, 'department_id' => $deptA->id, 'name' => 'CS Cricket']);
+        $teamB = Team::create(['edition_id' => $edition->id, 'sport_id' => $cricket->id, 'department_id' => $deptB->id, 'name' => 'BBA Cricket']);
+
+        $fix = Fixture::create([
+            'edition_id' => $edition->id,
+            'sport_id' => $cricket->id,
+            'team1_id' => $teamA->id,
+            'team2_id' => $teamB->id,
+            'status' => 'completed',
+        ]);
+
+        Result::create([
+            'fixture_id' => $fix->id,
+            'team1_score' => 180,
+            'team2_score' => 150,
+            'winner_team_id' => $teamA->id,
+        ]);
+
+        $service = new PointsTableService();
+        $standings = $service->calculate($edition, $cricket);
+
+        // Winner team in cricket gets 2 points instead of 3
+        $this->assertEquals(2, $standings[0]['points']);
+        $this->assertEquals(0, $standings[1]['points']);
+    }
 }

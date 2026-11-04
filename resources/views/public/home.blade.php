@@ -103,20 +103,22 @@
                                 <span class="font-bold text-slate-700">
                                     {{ $match->sport->name }} ({{ ucfirst($match->sport->category) }})
                                 </span>
-                                @if ($match->status === 'live')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                                        <span class="w-1.5 h-1.5 mr-1 rounded-full bg-emerald-600 animate-pulse"></span>
-                                        Live
-                                    </span>
-                                @elseif ($match->status === 'completed')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700">
-                                        Final
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/50">
-                                        {{ $match->match_time ? \Carbon\Carbon::parse($match->match_time)->format('g:i A') : 'Scheduled' }}
-                                    </span>
-                                @endif
+                                <div data-status-badge="{{ $match->id }}">
+                                    @if ($match->status === 'live')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                            <span class="w-1.5 h-1.5 mr-1 rounded-full bg-emerald-600 animate-pulse"></span>
+                                            Live
+                                        </span>
+                                    @elseif ($match->status === 'completed')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700">
+                                            Final
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/50">
+                                            {{ $match->match_time ? \Carbon\Carbon::parse($match->match_time)->format('g:i A') : 'Scheduled' }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
 
                             <!-- Matchup Body -->
@@ -129,8 +131,8 @@
                                         </span>
                                         <span class="text-xs text-slate-500 truncate">{{ $match->team1->department->name ?? 'Dept' }}</span>
                                     </div>
-                                    <span class="text-xl font-black text-slate-900 font-mono">
-                                        {{ $match->result ? $match->result->team1_score : '-' }}
+                                    <span data-team1-score="{{ $match->id }}" class="text-xl font-black text-slate-900 font-mono transition-transform duration-300">
+                                        {{ $match->result ? $match->formatTeamScore(1) : '-' }}
                                     </span>
                                 </div>
 
@@ -144,8 +146,8 @@
                                         </span>
                                         <span class="text-xs text-slate-500 truncate">{{ $match->team2->department->name ?? 'Dept' }}</span>
                                     </div>
-                                    <span class="text-xl font-black text-slate-900 font-mono">
-                                        {{ $match->result ? $match->result->team2_score : '-' }}
+                                    <span data-team2-score="{{ $match->id }}" class="text-xl font-black text-slate-900 font-mono transition-transform duration-300">
+                                        {{ $match->result ? $match->formatTeamScore(2) : '-' }}
                                     </span>
                                 </div>
                             </div>
@@ -327,5 +329,81 @@
     @endif
 
 </div>
+
+@push('scripts')
+<script>
+    (function() {
+        const endpoint = "{{ route('api.live-scores.index') }}";
+
+        function flashUpdate(el) {
+            if (!el) return;
+            el.classList.add('scale-125', 'text-amber-500', 'font-black');
+            setTimeout(() => {
+                el.classList.remove('scale-125', 'text-amber-500', 'font-black');
+            }, 600);
+        }
+
+        async function pollHomeScores() {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) return;
+                const data = await response.json();
+                if (!data.matches || !Array.isArray(data.matches)) return;
+
+                data.matches.forEach(match => {
+                    // Update Score 1
+                    const s1El = document.querySelector(`[data-team1-score="${match.id}"]`);
+                    if (s1El) {
+                        const newT1 = match.team1_score !== null ? String(match.team1_score) : '-';
+                        if (s1El.textContent.trim() !== newT1) {
+                            s1El.textContent = newT1;
+                            flashUpdate(s1El);
+                        }
+                    }
+
+                    // Update Score 2
+                    const s2El = document.querySelector(`[data-team2-score="${match.id}"]`);
+                    if (s2El) {
+                        const newT2 = match.team2_score !== null ? String(match.team2_score) : '-';
+                        if (s2El.textContent.trim() !== newT2) {
+                            s2El.textContent = newT2;
+                            flashUpdate(s2El);
+                        }
+                    }
+
+                    // Update Status Badge
+                    const badgeContainer = document.querySelector(`[data-status-badge="${match.id}"]`);
+                    if (badgeContainer) {
+                        if (match.status === 'live') {
+                            badgeContainer.innerHTML = `
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                    <span class="w-1.5 h-1.5 mr-1 rounded-full bg-emerald-600 animate-pulse"></span>
+                                    Live
+                                </span>
+                            `;
+                        } else if (match.status === 'completed') {
+                            badgeContainer.innerHTML = `
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700">
+                                    Final
+                                </span>
+                            `;
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error("Home scores poll error:", err);
+            }
+        }
+
+        // Poll every 8 seconds if there are running matches on the page
+        if (document.querySelector('[data-team1-score]')) {
+            setInterval(pollHomeScores, 8000);
+        }
+    })();
+</script>
+@endpush
 @endsection
 

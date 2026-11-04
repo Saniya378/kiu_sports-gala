@@ -216,4 +216,91 @@ class FixtureTest extends TestCase
         $delRes->assertRedirect(route('admin.fixtures.index'));
         $this->assertDatabaseMissing('fixtures', ['id' => $fixture->id]);
     }
+
+    public function test_validation_fails_on_venue_overbooking_conflict(): void
+    {
+        $edition = Edition::create(['title' => 'Gala 2026', 'year' => 2026, 'status' => 'running']);
+        $sportCricket = Sport::create(['name' => 'Cricket', 'category' => 'boys']);
+        $sportFootball = Sport::create(['name' => 'Football', 'category' => 'boys']);
+        $venue = Venue::create(['name' => 'Main Ground']);
+
+        $dept1 = Department::create(['name' => 'Dept 1']);
+        $dept2 = Department::create(['name' => 'Dept 2']);
+        $dept3 = Department::create(['name' => 'Dept 3']);
+        $dept4 = Department::create(['name' => 'Dept 4']);
+
+        $t1 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sportCricket->id, 'department_id' => $dept1->id, 'name' => 'T1 Cricket']);
+        $t2 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sportCricket->id, 'department_id' => $dept2->id, 'name' => 'T2 Cricket']);
+        $t3 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sportFootball->id, 'department_id' => $dept3->id, 'name' => 'T3 Football']);
+        $t4 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sportFootball->id, 'department_id' => $dept4->id, 'name' => 'T4 Football']);
+
+        // First fixture scheduled on Main Ground on 2026-11-10 at 10:00
+        Fixture::create([
+            'edition_id' => $edition->id,
+            'sport_id' => $sportCricket->id,
+            'team1_id' => $t1->id,
+            'team2_id' => $t2->id,
+            'venue_id' => $venue->id,
+            'match_date' => '2026-11-10',
+            'match_time' => '10:00',
+            'status' => 'scheduled',
+        ]);
+
+        // Attempt to schedule another match on the SAME venue at the SAME date and time
+        $response = $this->actingAs($this->admin)->post(route('admin.fixtures.store'), [
+            'edition_id' => $edition->id,
+            'sport_id' => $sportFootball->id,
+            'team1_id' => $t3->id,
+            'team2_id' => $t4->id,
+            'venue_id' => $venue->id,
+            'match_date' => '2026-11-10',
+            'match_time' => '10:00',
+            'status' => 'scheduled',
+        ]);
+
+        $response->assertSessionHasErrors('venue_id');
+    }
+
+    public function test_validation_fails_on_team_double_booking_conflict(): void
+    {
+        $edition = Edition::create(['title' => 'Gala 2026', 'year' => 2026, 'status' => 'running']);
+        $sportCricket = Sport::create(['name' => 'Cricket', 'category' => 'boys']);
+        $sportTableTennis = Sport::create(['name' => 'Table Tennis', 'category' => 'boys']);
+        $venue1 = Venue::create(['name' => 'Cricket Ground']);
+        $venue2 = Venue::create(['name' => 'Gym Court']);
+
+        $dept1 = Department::create(['name' => 'Dept 1']);
+        $dept2 = Department::create(['name' => 'Dept 2']);
+        $dept3 = Department::create(['name' => 'Dept 3']);
+
+        $t1Cricket = Team::create(['edition_id' => $edition->id, 'sport_id' => $sportCricket->id, 'department_id' => $dept1->id, 'name' => 'Dept 1 Cricket']);
+        $t2Cricket = Team::create(['edition_id' => $edition->id, 'sport_id' => $sportCricket->id, 'department_id' => $dept2->id, 'name' => 'Dept 2 Cricket']);
+        $t3Cricket = Team::create(['edition_id' => $edition->id, 'sport_id' => $sportCricket->id, 'department_id' => $dept3->id, 'name' => 'Dept 3 Cricket']);
+
+        // First fixture with Dept 1 Cricket on 2026-11-10 at 14:00
+        Fixture::create([
+            'edition_id' => $edition->id,
+            'sport_id' => $sportCricket->id,
+            'team1_id' => $t1Cricket->id,
+            'team2_id' => $t2Cricket->id,
+            'venue_id' => $venue1->id,
+            'match_date' => '2026-11-10',
+            'match_time' => '14:00',
+            'status' => 'scheduled',
+        ]);
+
+        // Attempt to schedule Dept 1 Cricket in ANOTHER match at the exact same time
+        $response = $this->actingAs($this->admin)->post(route('admin.fixtures.store'), [
+            'edition_id' => $edition->id,
+            'sport_id' => $sportCricket->id,
+            'team1_id' => $t1Cricket->id,
+            'team2_id' => $t3Cricket->id,
+            'venue_id' => $venue2->id,
+            'match_date' => '2026-11-10',
+            'match_time' => '14:00',
+            'status' => 'scheduled',
+        ]);
+
+        $response->assertSessionHasErrors('team1_id');
+    }
 }

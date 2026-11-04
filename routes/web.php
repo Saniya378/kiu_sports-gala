@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ScoreEntryController;
 use App\Http\Controllers\Admin\SportController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WinnerController;
 use App\Http\Controllers\LiveScoreController;
@@ -77,6 +78,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('departments', DepartmentController::class);
     Route::resource('venues', VenueController::class);
     Route::resource('sports', SportController::class);
+    Route::resource('users', UserController::class);
 
     // Teams & Players
     Route::post('teams/copy', [TeamController::class, 'copyFromEdition'])->name('teams.copy');

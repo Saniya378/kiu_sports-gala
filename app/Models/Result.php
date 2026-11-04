@@ -15,7 +15,11 @@ class Result extends Model
     protected $fillable = [
         'fixture_id',
         'team1_score',
+        'team1_wickets',
+        'team1_overs',
         'team2_score',
+        'team2_wickets',
+        'team2_overs',
         'winner_team_id',
         'player_of_the_match_id',
         'summary',
@@ -30,7 +34,9 @@ class Result extends Model
     {
         return [
             'team1_score' => 'integer',
+            'team1_wickets' => 'integer',
             'team2_score' => 'integer',
+            'team2_wickets' => 'integer',
         ];
     }
 

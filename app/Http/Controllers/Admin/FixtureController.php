@@ -8,8 +8,10 @@ use App\Models\Fixture;
 use App\Models\Sport;
 use App\Models\Team;
 use App\Models\Venue;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class FixtureController extends Controller
@@ -91,7 +93,7 @@ class FixtureController extends Controller
      */
     public function update(Request $request, Fixture $fixture): RedirectResponse
     {
-        $validated = $this->validateFixture($request);
+        $validated = $this->validateFixture($request, $fixture);
 
         $fixture->update($validated);
 
@@ -111,13 +113,13 @@ class FixtureController extends Controller
     }
 
     /**
-     * Validate the fixture request input.
+     * Validate the fixture request input and detect ground/team scheduling conflicts.
      *
      * @return array<string, mixed>
      */
-    protected function validateFixture(Request $request): array
+    protected function validateFixture(Request $request, ?Fixture $currentFixture = null): array
     {
-        return $request->validate([
+        $rules = [
             'edition_id' => ['required', 'exists:editions,id'],
             'sport_id' => ['required', 'exists:sports,id'],
             'team1_id' => [
@@ -148,11 +150,87 @@ class FixtureController extends Controller
             'round' => ['nullable', 'string', 'max:100'],
             'status' => ['required', 'in:scheduled,live,completed,cancelled'],
             'stream_url' => ['nullable', 'url', 'max:500'],
-        ], [
+        ];
+
+        $messages = [
             'team1_id.different' => 'Team 1 and Team 2 must be different teams.',
             'team2_id.different' => 'Team 1 and Team 2 must be different teams.',
             'match_time.regex' => 'The match time format must be HH:MM or HH:MM:SS.',
-        ]);
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        $validator->after(function ($v) use ($request, $currentFixture) {
+            $date = $request->input('match_date');
+            $time = $request->input('match_time');
+            $venueId = $request->input('venue_id');
+            $t1Id = $request->input('team1_id');
+            $t2Id = $request->input('team2_id');
+            $status = $request->input('status');
+
+            if ($status === 'cancelled') {
+                return;
+            }
+
+            if ($date && $time) {
+                try {
+                    $formattedTime = Carbon::parse($time)->format('H:i:s');
+                } catch (\Throwable) {
+                    return;
+                }
+
+                // 1. Check Venue Overbooking Clash
+                if ($venueId) {
+                    $venueClash = Fixture::where('venue_id', $venueId)
+                        ->whereDate('match_date', $date)
+                        ->whereTime('match_time', '=', $formattedTime)
+                        ->where('status', '!=', 'cancelled')
+                        ->when($currentFixture, fn($q) => $q->where('id', '!=', $currentFixture->id))
+                        ->exists();
+
+                    if ($venueClash) {
+                        $venue = Venue::find($venueId);
+                        $venueName = $venue?->name ?? 'This ground';
+                        $timeStr = Carbon::parse($time)->format('g:i A');
+                        $v->errors()->add('venue_id', "Ground Overbooking Alert: '{$venueName}' is already booked for another fixture on {$date} at {$timeStr}.");
+                    }
+                }
+
+                // 2. Check Team 1 Double-Booking Conflict
+                if ($t1Id) {
+                    $team1Clash = Fixture::whereDate('match_date', $date)
+                        ->whereTime('match_time', '=', $formattedTime)
+                        ->where('status', '!=', 'cancelled')
+                        ->where(fn($q) => $q->where('team1_id', $t1Id)->orWhere('team2_id', $t1Id))
+                        ->when($currentFixture, fn($q) => $q->where('id', '!=', $currentFixture->id))
+                        ->exists();
+
+                    if ($team1Clash) {
+                        $t1 = Team::find($t1Id);
+                        $timeStr = Carbon::parse($time)->format('g:i A');
+                        $v->errors()->add('team1_id', "Schedule Conflict: '{$t1?->name}' is already scheduled to play another match on {$date} at {$timeStr}.");
+                    }
+                }
+
+                // 3. Check Team 2 Double-Booking Conflict
+                if ($t2Id) {
+                    $team2Clash = Fixture::whereDate('match_date', $date)
+                        ->whereTime('match_time', '=', $formattedTime)
+                        ->where('status', '!=', 'cancelled')
+                        ->where(fn($q) => $q->where('team1_id', $t2Id)->orWhere('team2_id', $t2Id))
+                        ->when($currentFixture, fn($q) => $q->where('id', '!=', $currentFixture->id))
+                        ->exists();
+
+                    if ($team2Clash) {
+                        $t2 = Team::find($t2Id);
+                        $timeStr = Carbon::parse($time)->format('g:i A');
+                        $v->errors()->add('team2_id', "Schedule Conflict: '{$t2?->name}' is already scheduled to play another match on {$date} at {$timeStr}.");
+                    }
+                }
+            }
+        });
+
+        return $validator->validate();
     }
 }
 

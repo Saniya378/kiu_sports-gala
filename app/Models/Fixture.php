@@ -193,6 +193,35 @@ class Fixture extends Model
     }
 
     /**
+     * Format display score for a team, including wickets and overs if Cricket.
+     */
+    public function formatTeamScore(int $teamNumber): string
+    {
+        if (! $this->result) {
+            return '0';
+        }
+
+        $score = $teamNumber === 1 ? $this->result->team1_score : $this->result->team2_score;
+        $wickets = $teamNumber === 1 ? $this->result->team1_wickets : $this->result->team2_wickets;
+        $overs = $teamNumber === 1 ? $this->result->team1_overs : $this->result->team2_overs;
+
+        $isCricket = str_contains(strtolower($this->sport?->name ?? ''), 'cricket');
+
+        if ($isCricket && ($wickets !== null || !empty($overs))) {
+            $formatted = (string) $score;
+            if ($wickets !== null) {
+                $formatted .= "/{$wickets}";
+            }
+            if (!empty($overs)) {
+                $formatted .= " ({$overs} ov)";
+            }
+            return $formatted;
+        }
+
+        return (string) $score;
+    }
+
+    /**
      * Generate pre-formatted WhatsApp share message with real Unicode emojis and match details.
      */
     public function getWhatsAppShareTextAttribute(): string
@@ -213,8 +242,8 @@ class Fixture extends Model
         $lines[] = "";
 
         if ($this->status === 'live') {
-            $s1 = $this->result?->team1_score ?? 0;
-            $s2 = $this->result?->team2_score ?? 0;
+            $s1 = $this->formatTeamScore(1);
+            $s2 = $this->formatTeamScore(2);
             $lines[] = "🔴 *LIVE MATCH UPDATE*";
             $lines[] = "👉 *{$t1}*: {$s1}";
             $lines[] = "👉 *{$t2}*: {$s2}";
@@ -228,8 +257,8 @@ class Fixture extends Model
             $lines[] = "📲 *Live Scores & Commentary:*";
             $lines[] = $matchUrl;
         } elseif ($this->status === 'completed') {
-            $s1 = $this->result?->team1_score ?? 0;
-            $s2 = $this->result?->team2_score ?? 0;
+            $s1 = $this->formatTeamScore(1);
+            $s2 = $this->formatTeamScore(2);
             $lines[] = "✅ *FINAL RESULT*";
             $lines[] = "*{$t1}*: {$s1}";
             $lines[] = "*{$t2}*: {$s2}";

@@ -88,7 +88,11 @@ class ScoreEntryController extends Controller
         $validated = $request->validate([
             'fixture_id' => ['required', 'exists:fixtures,id'],
             'team1_score' => ['required', 'integer', 'min:0'],
+            'team1_wickets' => ['nullable', 'integer', 'between:0,10'],
+            'team1_overs' => ['nullable', 'string', 'max:10'],
             'team2_score' => ['required', 'integer', 'min:0'],
+            'team2_wickets' => ['nullable', 'integer', 'between:0,10'],
+            'team2_overs' => ['nullable', 'string', 'max:10'],
             'player_of_the_match_id' => ['nullable', 'exists:players,id'],
             'status' => ['nullable', 'in:scheduled,live,completed,cancelled'],
             'stream_url' => ['nullable', 'url', 'max:500'],
@@ -115,7 +119,11 @@ class ScoreEntryController extends Controller
                 ['fixture_id' => $fixture->id],
                 [
                     'team1_score' => $validated['team1_score'],
+                    'team1_wickets' => $validated['team1_wickets'] ?? null,
+                    'team1_overs' => $validated['team1_overs'] ?? null,
                     'team2_score' => $validated['team2_score'],
+                    'team2_wickets' => $validated['team2_wickets'] ?? null,
+                    'team2_overs' => $validated['team2_overs'] ?? null,
                     'winner_team_id' => $winnerTeamId,
                     'player_of_the_match_id' => $validated['player_of_the_match_id'] ?? null,
                     'summary' => $validated['summary'] ?? null,

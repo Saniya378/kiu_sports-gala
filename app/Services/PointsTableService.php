@@ -22,6 +22,12 @@ class PointsTableService
         $editionId = $edition instanceof Edition ? $edition->id : $edition;
         $sportId = $sport instanceof Sport ? $sport->id : $sport;
 
+        $sportModel = $sport instanceof Sport ? $sport : Sport::find($sportId);
+        $sportName = strtolower($sportModel?->name ?? '');
+        $isCricket = str_contains($sportName, 'cricket');
+        $winPoints = $isCricket ? 2 : 3;
+        $drawPoints = 1;
+
         // Fetch all teams registered for this edition and sport
         $teams = Team::with('department')
             ->where('edition_id', $editionId)
@@ -67,10 +73,10 @@ class PointsTableService
 
                 if ($result->winner_team_id === $t1Id) {
                     $standings[$t1Id]['won']++;
-                    $standings[$t1Id]['points'] += 3;
+                    $standings[$t1Id]['points'] += $winPoints;
                 } elseif ($result->winner_team_id === null) {
                     $standings[$t1Id]['drawn']++;
-                    $standings[$t1Id]['points'] += 1;
+                    $standings[$t1Id]['points'] += $drawPoints;
                 } else {
                     $standings[$t1Id]['lost']++;
                 }
@@ -85,10 +91,10 @@ class PointsTableService
 
                 if ($result->winner_team_id === $t2Id) {
                     $standings[$t2Id]['won']++;
-                    $standings[$t2Id]['points'] += 3;
+                    $standings[$t2Id]['points'] += $winPoints;
                 } elseif ($result->winner_team_id === null) {
                     $standings[$t2Id]['drawn']++;
-                    $standings[$t2Id]['points'] += 1;
+                    $standings[$t2Id]['points'] += $drawPoints;
                 } else {
                     $standings[$t2Id]['lost']++;
                 }
