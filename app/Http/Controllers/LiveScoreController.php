@@ -67,6 +67,8 @@ class LiveScoreController extends Controller
                         'team_name' => $fixture->result->playerOfTheMatch->team?->name,
                     ] : null,
                     'summary' => $fixture->result?->summary,
+                    'has_stream' => !empty($fixture->stream_url),
+                    'stream_url' => $fixture->stream_url,
                     'url' => route('matches.show', $fixture),
                 ];
             });
@@ -109,6 +111,9 @@ class LiveScoreController extends Controller
                 'venue' => $fixture->venue?->name,
                 'match_date' => $fixture->match_date?->format('Y-m-d'),
                 'match_time' => $fixture->match_time,
+                'stream_url' => $fixture->stream_url,
+                'embed_stream_url' => $fixture->embed_stream_url,
+                'stream_platform' => $fixture->stream_platform,
                 'team1' => [
                     'id' => $fixture->team1_id,
                     'name' => $fixture->team1?->name,

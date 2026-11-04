@@ -182,6 +182,70 @@
         </div>
     </div>
 
+    <!-- Live Video Broadcast Player Section (YouTube / Facebook Live Stream) -->
+    <div id="live-stream-section" class="{{ $fixture->stream_url ? '' : 'hidden' }}">
+        <div class="bg-slate-900 border-2 border-amber-400/80 rounded-2xl overflow-hidden shadow-2xl">
+            <!-- Player Header Bar -->
+            <div class="px-5 py-3.5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-white">
+                <div class="flex items-center gap-3">
+                    <div id="stream-status-pill">
+                        @if($fixture->status === 'live')
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-red-600 text-white animate-pulse tracking-wider uppercase">
+                                <span class="w-2 h-2 rounded-full bg-white"></span>
+                                LIVE STREAM
+                            </span>
+                        @elseif($fixture->status === 'completed')
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-amber-300 border border-slate-700">
+                                🎥 MATCH REPLAY / RECORDING
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-900 text-indigo-200 border border-indigo-700">
+                                📺 SCHEDULED BROADCAST
+                            </span>
+                        @endif
+                    </div>
+
+                    <h3 class="text-sm font-bold text-slate-200">
+                        {{ $fixture->team1->name ?? 'Team 1' }} vs {{ $fixture->team2->name ?? 'Team 2' }} Official Video Broadcast
+                    </h3>
+                </div>
+
+                <div class="flex items-center gap-2 text-xs">
+                    <span id="stream-platform-badge" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 font-semibold uppercase tracking-wider text-[11px]">
+                        {{ ucfirst($fixture->stream_platform ?? 'Stream') }}
+                    </span>
+                    <a id="stream-external-link" href="{{ $fixture->stream_url ?? '#' }}" target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold transition-all shadow-xs">
+                        <span>Open Video</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Responsive 16:9 Video Embed -->
+            <div class="relative w-full aspect-video bg-black flex items-center justify-center">
+                <iframe
+                    id="live-stream-iframe"
+                    src="{{ $fixture->embed_stream_url ?? '' }}"
+                    title="{{ $fixture->team1->name ?? 'Team 1' }} vs {{ $fixture->team2->name ?? 'Team 2' }} Live Stream"
+                    class="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <div class="px-5 py-2.5 bg-slate-950/90 text-slate-400 text-xs flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Directorate of Sports KIU Official Live Stream Channel
+                </span>
+                <span class="text-[11px]">If playback is restricted by your device or network, tap "Open Video" to view directly.</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Match Events & Commentary Timeline -->
     <div class="space-y-4">
         <div class="flex items-center justify-between">
@@ -529,6 +593,41 @@
                 if (data.result && data.result.summary && summaryBox && summaryText) {
                     summaryText.textContent = data.result.summary;
                     summaryBox.classList.remove('hidden');
+                }
+
+                // Update Live Stream if broadcast is attached
+                const streamSection = document.getElementById('live-stream-section');
+                const streamIframe = document.getElementById('live-stream-iframe');
+                const streamExternalLink = document.getElementById('stream-external-link');
+                const streamPlatformBadge = document.getElementById('stream-platform-badge');
+                const streamStatusPill = document.getElementById('stream-status-pill');
+
+                if (data.stream_url && streamSection) {
+                    streamSection.classList.remove('hidden');
+                    if (streamIframe && data.embed_stream_url && streamIframe.src !== data.embed_stream_url) {
+                        streamIframe.src = data.embed_stream_url;
+                    }
+                    if (streamExternalLink) {
+                        streamExternalLink.href = data.stream_url;
+                    }
+                    if (streamPlatformBadge && data.stream_platform) {
+                        streamPlatformBadge.textContent = data.stream_platform.toUpperCase();
+                    }
+                    if (streamStatusPill) {
+                        if (currentStatus === 'live') {
+                            streamStatusPill.innerHTML = `
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-red-600 text-white animate-pulse tracking-wider uppercase">
+                                    <span class="w-2 h-2 rounded-full bg-white"></span> LIVE STREAM
+                                </span>
+                            `;
+                        } else if (currentStatus === 'completed') {
+                            streamStatusPill.innerHTML = `
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-amber-300 border border-slate-700">
+                                    🎥 MATCH REPLAY / RECORDING
+                                </span>
+                            `;
+                        }
+                    }
                 }
 
                 // Update Timeline Events dynamically

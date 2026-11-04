@@ -147,6 +147,7 @@ class FixtureController extends Controller
             'match_time' => ['nullable', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
             'round' => ['nullable', 'string', 'max:100'],
             'status' => ['required', 'in:scheduled,live,completed,cancelled'],
+            'stream_url' => ['nullable', 'url', 'max:500'],
         ], [
             'team1_id.different' => 'Team 1 and Team 2 must be different teams.',
             'team2_id.different' => 'Team 1 and Team 2 must be different teams.',

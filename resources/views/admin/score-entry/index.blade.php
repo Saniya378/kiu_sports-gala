@@ -244,6 +244,21 @@
                     @enderror
                 </div>
 
+                <!-- Live Video Stream Broadcast URL -->
+                <div>
+                    <label for="stream_url" class="block text-sm font-semibold text-slate-700 mb-1">
+                        🎥 Live Video Stream URL <span class="text-slate-400 font-normal text-xs">(YouTube Live / Facebook Live)</span>
+                    </label>
+                    <input type="url" name="stream_url" id="stream_url"
+                           value="{{ old('stream_url', $selectedFixture->stream_url) }}"
+                           placeholder="https://www.youtube.com/watch?v=... or Facebook Live URL"
+                           class="w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 shadow-sm">
+                    <p class="text-xs text-slate-500 mt-1">If streaming live from ground, paste URL to embed video player on public match page.</p>
+                    @error('stream_url')
+                        <p class="text-rose-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Match Status Option (Live vs Completed) -->
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">

@@ -170,7 +170,14 @@
 
                         <!-- Right: Venue, Status & Link -->
                         <div class="md:w-56 shrink-0 flex flex-col md:items-end justify-between space-y-2 border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
-                            <div>
+                            <div class="flex items-center gap-2">
+                                @if ($fixture->stream_url)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200" title="Live Video Stream available">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                                        Stream
+                                    </span>
+                                @endif
+
                                 @if ($fixture->status === 'live')
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
                                         <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-600 animate-pulse"></span>

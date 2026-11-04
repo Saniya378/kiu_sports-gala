@@ -91,6 +91,7 @@ class ScoreEntryController extends Controller
             'team2_score' => ['required', 'integer', 'min:0'],
             'player_of_the_match_id' => ['nullable', 'exists:players,id'],
             'status' => ['nullable', 'in:scheduled,live,completed,cancelled'],
+            'stream_url' => ['nullable', 'url', 'max:500'],
             'summary' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -109,7 +110,7 @@ class ScoreEntryController extends Controller
             }
         }
 
-        DB::transaction(function () use ($fixture, $validated, $winnerTeamId, $status) {
+        DB::transaction(function () use ($fixture, $validated, $winnerTeamId, $status, $request) {
             Result::updateOrCreate(
                 ['fixture_id' => $fixture->id],
                 [
@@ -121,8 +122,12 @@ class ScoreEntryController extends Controller
                 ]
             );
 
-            // Update fixture status
-            $fixture->update(['status' => $status]);
+            // Update fixture status and optional live stream URL
+            $fixtureData = ['status' => $status];
+            if ($request->has('stream_url')) {
+                $fixtureData['stream_url'] = $validated['stream_url'];
+            }
+            $fixture->update($fixtureData);
         });
 
         // Invalidate live scores and standings micro-caches immediately

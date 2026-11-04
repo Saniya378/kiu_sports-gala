@@ -287,6 +287,18 @@
                        placeholder="e.g. 1st Inning Complete, 12 overs remaining, or Final Set underway..."
                        class="w-full rounded-xl border-slate-300 text-xs focus:border-amber-400 focus:ring-amber-400">
             </div>
+
+            <!-- Live Video Stream Broadcast URL -->
+            <div>
+                <label for="stream_url" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    🎥 Live Video Stream URL (YouTube / Facebook Live)
+                </label>
+                <input type="url" name="stream_url" id="stream_url"
+                       value="{{ old('stream_url', $fixture->stream_url) }}"
+                       placeholder="https://www.youtube.com/watch?v=... or Facebook Live URL"
+                       class="w-full rounded-xl border-slate-300 text-xs focus:border-amber-400 focus:ring-amber-400">
+                <p class="text-[11px] text-slate-400 mt-1">Embed video player will appear automatically on the public match screen.</p>
+            </div>
         </div>
 
         <!-- Live Match Events & Key Moments Recorder -->

@@ -67,7 +67,15 @@
                                 </span>
                             </div>
 
-                            <div data-status-badge="{{ $fixture->id }}">
+                            <div class="flex items-center gap-2">
+                                @if($fixture->stream_url)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200" title="Live Video Stream available">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                                        Stream
+                                    </span>
+                                @endif
+
+                                <div data-status-badge="{{ $fixture->id }}">
                                 @if ($fixture->status === 'live')
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
                                         <span class="w-1.5 h-1.5 mr-1 rounded-full bg-emerald-600 animate-pulse"></span>

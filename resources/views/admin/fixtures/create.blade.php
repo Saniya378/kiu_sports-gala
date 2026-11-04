@@ -203,6 +203,26 @@
                         <p class="text-rose-600 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <!-- Live Video Stream URL -->
+                <div class="md:col-span-2">
+                    <label for="stream_url" class="block text-sm font-medium text-slate-700 mb-1">
+                        Live Video Stream URL (Optional)
+                    </label>
+                    <div class="relative rounded-lg shadow-xs">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            🎥
+                        </div>
+                        <input type="url" name="stream_url" id="stream_url"
+                               placeholder="https://www.youtube.com/watch?v=... or Facebook Live / Video URL"
+                               value="{{ old('stream_url') }}"
+                               class="w-full pl-10 rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 @error('stream_url') border-rose-300 @enderror">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Supports YouTube Live, YouTube video links, or Facebook Live streams. Embed player will automatically appear on the public match page.</p>
+                    @error('stream_url')
+                        <p class="text-rose-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <!-- Form Actions -->
