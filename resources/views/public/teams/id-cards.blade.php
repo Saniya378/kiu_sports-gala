@@ -86,9 +86,13 @@
                     <div class="p-4 flex gap-3 items-center">
                         <!-- Left: Avatar & QR Code -->
                         <div class="flex flex-col items-center space-y-2 shrink-0">
-                            <div class="w-14 h-14 rounded-xl bg-slate-800 text-amber-400 font-black text-xl flex items-center justify-center shadow-xs">
-                                {{ strtoupper(substr($player->name, 0, 1)) }}
-                            </div>
+                            @if($player->photo_url)
+                                <img src="{{ $player->photo_url }}" alt="{{ $player->name }}" class="w-14 h-14 rounded-xl object-cover border border-slate-300 shadow-xs">
+                            @else
+                                <div class="w-14 h-14 rounded-xl bg-slate-800 text-amber-400 font-black text-xl flex items-center justify-center shadow-xs">
+                                    {{ strtoupper(substr($player->name, 0, 1)) }}
+                                </div>
+                            @endif
                             <div class="w-16 h-16 bg-white p-0.5 border border-slate-200 rounded-lg flex items-center justify-center shadow-xs">
                                 {!! $player->qr_svg !!}
                             </div>

@@ -93,5 +93,13 @@ class Fixture extends Model
     {
         return $this->hasMany(MatchPhoto::class);
     }
+
+    /**
+     * Get the timeline events for this fixture.
+     */
+    public function events(): HasMany
+    {
+        return $this->hasMany(MatchEvent::class)->orderBy('id', 'asc');
+    }
 }
 

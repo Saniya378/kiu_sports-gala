@@ -10,6 +10,7 @@ use App\Models\Sport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -72,6 +73,8 @@ class ScoreEntryController extends Controller
             'team2.players',
             'result.winnerTeam',
             'result.playerOfTheMatch',
+            'events.team',
+            'events.player',
         ]);
 
         return view('admin.score-entry.pad', compact('fixture'));
@@ -121,6 +124,14 @@ class ScoreEntryController extends Controller
             // Update fixture status
             $fixture->update(['status' => $status]);
         });
+
+        // Invalidate live scores and standings micro-caches immediately
+        Cache::forget('live_scores_today_all');
+        if ($fixture->sport_id) {
+            Cache::forget("live_scores_today_{$fixture->sport_id}");
+        }
+        Cache::forget("fixture_live_{$fixture->id}");
+        Cache::forget("medal_tally_{$fixture->edition_id}");
 
         $winnerName = $winnerTeamId
             ? ($winnerTeamId == $fixture->team1_id ? $fixture->team1->name : $fixture->team2->name)

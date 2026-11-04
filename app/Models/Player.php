@@ -18,7 +18,20 @@ class Player extends Model
         'name',
         'reg_no',
         'contact',
+        'photo',
     ];
+
+    /**
+     * Get the public URL to the player's photo or null if none uploaded.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if ($this->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->photo)) {
+            return \Illuminate\Support\Facades\Storage::url($this->photo);
+        }
+
+        return null;
+    }
 
     /**
      * Get the team that the player belongs to.

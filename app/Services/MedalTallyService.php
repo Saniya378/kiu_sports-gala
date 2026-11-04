@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Edition;
 use App\Models\Winner;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class MedalTallyService
 {
@@ -18,14 +19,40 @@ class MedalTallyService
 
     /**
      * Calculate Department Medal Tally standings for a given edition.
+     * Caches computation for 30s during high traffic loads.
      *
      * @param int|Edition $edition
+     * @param bool $useCache
      * @return Collection<int, array<string, mixed>>
      */
-    public function calculateForEdition(int|Edition $edition): Collection
+    public function calculateForEdition(int|Edition $edition, bool $useCache = true): Collection
     {
         $editionId = $edition instanceof Edition ? $edition->id : $edition;
+        $cacheKey = "medal_tally_{$editionId}";
 
+        if ($useCache) {
+            return Cache::remember($cacheKey, 30, function () use ($editionId) {
+                return $this->computeTally($editionId);
+            });
+        }
+
+        return $this->computeTally($editionId);
+    }
+
+    /**
+     * Clear cached standings for an edition (called when winners/results change).
+     */
+    public function clearCache(int|Edition $edition): void
+    {
+        $editionId = $edition instanceof Edition ? $edition->id : $edition;
+        Cache::forget("medal_tally_{$editionId}");
+    }
+
+    /**
+     * Compute actual tally numbers from database.
+     */
+    protected function computeTally(int $editionId): Collection
+    {
         // Fetch all winners for this edition with relations
         $winners = Winner::with([
             'sport',
@@ -36,8 +63,6 @@ class MedalTallyService
         ->where('edition_id', $editionId)
         ->get();
 
-        // Fetch all registered departments so even 0-medal participating departments can be considered if needed,
-        // or prioritize departments with medals
         $tallies = [];
 
         foreach ($winners as $winner) {
@@ -99,7 +124,7 @@ class MedalTallyService
 
         // Assign ranks (1, 2, 3...)
         $rank = 1;
-        $ranked = $sorted->map(function ($item, $index) use (&$rank, $sorted) {
+        return $sorted->map(function ($item, $index) use (&$rank, $sorted) {
             if ($index > 0) {
                 $prev = $sorted[$index - 1];
                 $isTied = $item['gold'] === $prev['gold'] &&
@@ -113,8 +138,6 @@ class MedalTallyService
             $item['rank'] = $rank;
             return $item;
         });
-
-        return $ranked;
     }
 
     /**
@@ -141,4 +164,3 @@ class MedalTallyService
         ];
     }
 }
-

@@ -253,5 +253,83 @@ class TeamsAndPlayersTest extends TestCase
         // Existing team should still be there untouched
         $this->assertEquals(2, Team::where('edition_id', $this->edition2026->id)->count());
     }
+
+    public function test_admin_can_add_player_with_photo_and_removes_file_on_delete(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $team = Team::create([
+            'edition_id' => $this->edition2026->id,
+            'sport_id' => $this->football->id,
+            'department_id' => $this->cs->id,
+            'name' => 'CS Football Stars',
+            'status' => 'approved',
+        ]);
+
+        $photo = \Illuminate\Http\UploadedFile::fake()->image('player_ali.jpg', 300, 300);
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.teams.players.store', $team), [
+                'name' => 'Ali Haider',
+                'reg_no' => '2023-CS-099',
+                'photo' => $photo,
+            ]);
+
+        $response->assertRedirect(route('admin.teams.edit', $team));
+
+        $player = Player::where('reg_no', '2023-CS-099')->first();
+        $this->assertNotNull($player);
+        $this->assertNotNull($player->photo);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($player->photo);
+        $this->assertNotNull($player->photo_url);
+
+        // Delete player -> photo should be removed from storage
+        $deleteResponse = $this->actingAs($this->admin)
+            ->delete(route('admin.teams.players.destroy', [$team, $player]));
+
+        $deleteResponse->assertRedirect(route('admin.teams.edit', $team));
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($player->photo);
+        $this->assertDatabaseMissing('players', ['id' => $player->id]);
+    }
+
+    public function test_admin_can_bulk_import_players_via_csv(): void
+    {
+        $team = Team::create([
+            'edition_id' => $this->edition2026->id,
+            'sport_id' => $this->football->id,
+            'department_id' => $this->cs->id,
+            'name' => 'CS Strikers XI',
+            'status' => 'approved',
+        ]);
+
+        $csvContent = "Name,Registration Number,Contact\n"
+                    . "Kamran Shah,2023-CS-001,0300-1111111\n"
+                    . "Zubair Ahmed,2023-CS-002,0300-2222222\n"
+                    . "Bilal Khan,2023-CS-003,0300-3333333\n";
+
+        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('roster.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.teams.players.import', $team), [
+                'csv_file' => $file,
+            ]);
+
+        $response->assertRedirect(route('admin.teams.edit', $team));
+        $response->assertSessionHas('success');
+
+        $this->assertEquals(3, $team->players()->count());
+        $this->assertDatabaseHas('players', ['name' => 'Kamran Shah', 'reg_no' => '2023-CS-001']);
+        $this->assertDatabaseHas('players', ['name' => 'Zubair Ahmed', 'reg_no' => '2023-CS-002']);
+        $this->assertDatabaseHas('players', ['name' => 'Bilal Khan', 'reg_no' => '2023-CS-003']);
+    }
+
+    public function test_admin_can_download_sample_csv(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.teams.players.sample-csv'));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Disposition', 'attachment; filename="kiu_team_players_template.csv"');
+        $this->assertStringContainsString('Player Name,Registration Number,Contact', $response->getContent());
+    }
 }
 

@@ -71,11 +71,15 @@
                 <!-- Player Avatar & Verification Pill -->
                 <div class="flex items-center space-x-4">
                     <!-- Silhouette / Photo Placeholder -->
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#0a1226] to-slate-800 p-0.5 shadow-md shrink-0 flex items-center justify-center text-amber-400 relative">
-                        <span class="text-3xl font-black">
-                            {{ strtoupper(substr($player->name, 0, 1)) }}
-                        </span>
-                        <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[10px] font-black" title="Verified">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#0a1226] to-slate-800 p-0.5 shadow-md shrink-0 flex items-center justify-center text-amber-400 relative overflow-hidden">
+                        @if($player->photo_url)
+                            <img src="{{ $player->photo_url }}" alt="{{ $player->name }}" class="w-full h-full rounded-2xl object-cover">
+                        @else
+                            <span class="text-3xl font-black">
+                                {{ strtoupper(substr($player->name, 0, 1)) }}
+                            </span>
+                        @endif
+                        <span class="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[9px] font-black" title="Verified">
                             ✓
                         </span>
                     </div>

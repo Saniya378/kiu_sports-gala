@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\EditionController;
 use App\Http\Controllers\Admin\EditionPhotoController;
 use App\Http\Controllers\Admin\FixtureController;
+use App\Http\Controllers\Admin\MatchEventController;
 use App\Http\Controllers\Admin\MatchPhotoController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\PlayerController;
@@ -79,8 +80,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Teams & Players
     Route::post('teams/copy', [TeamController::class, 'copyFromEdition'])->name('teams.copy');
+    Route::get('teams/players/sample-csv', [PlayerController::class, 'sampleCsv'])->name('teams.players.sample-csv');
     Route::resource('teams', TeamController::class);
     Route::post('teams/{team}/players', [PlayerController::class, 'store'])->name('teams.players.store');
+    Route::post('teams/{team}/players/import', [PlayerController::class, 'importCsv'])->name('teams.players.import');
     Route::delete('teams/{team}/players/{player}', [PlayerController::class, 'destroy'])->name('teams.players.destroy');
 
     // Fixtures
@@ -120,6 +123,10 @@ Route::middleware(['auth', 'can.score'])->group(function () {
     // Match Photos (Accessible by Admin and Scorer)
     Route::post('/admin/fixtures/{fixture}/photos', [MatchPhotoController::class, 'store'])->name('admin.fixtures.photos.store');
     Route::delete('/admin/match-photos/{photo}', [MatchPhotoController::class, 'destroy'])->name('admin.fixtures.photos.destroy');
+
+    // Match Timeline Events (Accessible by Admin and Scorer)
+    Route::post('/admin/fixtures/{fixture}/events', [MatchEventController::class, 'store'])->name('admin.fixtures.events.store');
+    Route::delete('/admin/fixtures/{fixture}/events/{event}', [MatchEventController::class, 'destroy'])->name('admin.fixtures.events.destroy');
 });
 
 require __DIR__.'/auth.php';

@@ -170,6 +170,8 @@ class PublicController extends Controller
             'result.winnerTeam',
             'result.playerOfTheMatch.team.department',
             'photos.uploader',
+            'events.team',
+            'events.player',
         ]);
 
         return view('public.match-detail', compact('fixture'));

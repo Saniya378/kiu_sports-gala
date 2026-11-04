@@ -182,6 +182,70 @@
         </div>
     </div>
 
+    <!-- Match Events & Commentary Timeline -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <span class="text-2xl">⏱️</span>
+                <span>Match Timeline &amp; Key Moments</span>
+            </h3>
+            <span id="events-count-badge" class="text-xs text-slate-500 font-semibold bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                {{ $fixture->events->count() }} {{ Str::plural('Event', $fixture->events->count()) }}
+            </span>
+        </div>
+
+        <div id="events-timeline-container" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+            @if($fixture->events->isEmpty())
+                <div id="no-events-placeholder" class="text-center py-8 text-slate-400">
+                    <span class="text-3xl block mb-2">⏱️</span>
+                    <p class="text-sm font-medium text-slate-600">No timeline moments recorded yet.</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Key match moments (goals, wickets, cards, commentary) will appear here live during play.</p>
+                </div>
+                <div id="events-list" class="relative pl-6 space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 hidden"></div>
+            @else
+                <div id="no-events-placeholder" class="hidden"></div>
+                <div id="events-list" class="relative pl-6 space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                    @foreach($fixture->events as $event)
+                        <div class="relative flex items-start space-x-3 group">
+                            <!-- Bullet / Icon -->
+                            <div class="absolute -left-6 mt-0.5 w-6 h-6 rounded-full bg-white border-2 border-amber-400 flex items-center justify-center text-xs shadow-xs">
+                                {{ $event->icon }}
+                            </div>
+                            <div class="flex-1 bg-slate-50 p-3.5 rounded-xl border border-slate-100 hover:border-amber-300 transition-colors">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center space-x-2">
+                                        @if($event->minute)
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black font-mono bg-slate-900 text-amber-300">
+                                                {{ $event->minute }}
+                                            </span>
+                                        @endif
+                                        <span class="font-bold text-slate-900 text-sm">
+                                            {{ $event->title }}
+                                        </span>
+                                    </div>
+                                    @if($event->team)
+                                        <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                            {{ $event->team->name }}
+                                        </span>
+                                    @endif
+                                </div>
+                                @if($event->description || $event->player)
+                                    <div class="mt-1 text-xs text-slate-600">
+                                        @if($event->player)
+                                            <strong class="text-slate-900">{{ $event->player->name }}</strong>
+                                            @if($event->description) &bull; @endif
+                                        @endif
+                                        {{ $event->description }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Team Rosters / Squads Section -->
     <div class="space-y-4">
         <h3 class="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
@@ -465,6 +529,52 @@
                 if (data.result && data.result.summary && summaryBox && summaryText) {
                     summaryText.textContent = data.result.summary;
                     summaryBox.classList.remove('hidden');
+                }
+
+                // Update Timeline Events dynamically
+                const eventsList = document.getElementById('events-list');
+                const noEventsPlaceholder = document.getElementById('no-events-placeholder');
+                const eventsCountBadge = document.getElementById('events-count-badge');
+
+                if (data.events && eventsList) {
+                    if (eventsCountBadge) {
+                        eventsCountBadge.textContent = `${data.events.length} ${data.events.length === 1 ? 'Event' : 'Events'}`;
+                    }
+
+                    if (data.events.length > 0) {
+                        if (noEventsPlaceholder) noEventsPlaceholder.classList.add('hidden');
+                        eventsList.classList.remove('hidden');
+
+                        let html = '';
+                        data.events.forEach(ev => {
+                            html += `
+                                <div class="relative flex items-start space-x-3 group">
+                                    <div class="absolute -left-6 mt-0.5 w-6 h-6 rounded-full bg-white border-2 border-amber-400 flex items-center justify-center text-xs shadow-xs">
+                                        ${ev.icon || '📢'}
+                                    </div>
+                                    <div class="flex-1 bg-slate-50 p-3.5 rounded-xl border border-slate-100 hover:border-amber-300 transition-colors">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex items-center space-x-2">
+                                                ${ev.minute ? `<span class="px-2 py-0.5 rounded text-[10px] font-black font-mono bg-slate-900 text-amber-300">${ev.minute}</span>` : ''}
+                                                <span class="font-bold text-slate-900 text-sm">${ev.title}</span>
+                                            </div>
+                                            ${ev.team_name ? `<span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">${ev.team_name}</span>` : ''}
+                                        </div>
+                                        ${(ev.description || ev.player_name) ? `
+                                            <div class="mt-1 text-xs text-slate-600">
+                                                ${ev.player_name ? `<strong class="text-slate-900">${ev.player_name}</strong> ${ev.description ? '&bull;' : ''}` : ''}
+                                                ${ev.description || ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        eventsList.innerHTML = html;
+                    } else {
+                        if (noEventsPlaceholder) noEventsPlaceholder.classList.remove('hidden');
+                        eventsList.classList.add('hidden');
+                    }
                 }
 
             } catch (err) {

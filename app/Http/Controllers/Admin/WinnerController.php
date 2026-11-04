@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Edition;
 use App\Models\Sport;
 use App\Models\Winner;
+use App\Services\MedalTallyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -77,7 +78,8 @@ class WinnerController extends Controller
             'second_runner_up_department_id.different' => 'The bronze medal department must be distinct from winner and runner-up departments.',
         ]);
 
-        Winner::create($validated);
+        $winner = Winner::create($validated);
+        (new MedalTallyService())->clearCache($winner->edition_id);
 
         return redirect()->route('admin.winners.index')
             ->with('success', 'Winner record added successfully.');
@@ -120,6 +122,7 @@ class WinnerController extends Controller
         ]);
 
         $winner->update($validated);
+        (new MedalTallyService())->clearCache($winner->edition_id);
 
         return redirect()->route('admin.winners.index')
             ->with('success', 'Winner record updated successfully.');
@@ -130,7 +133,9 @@ class WinnerController extends Controller
      */
     public function destroy(Winner $winner): RedirectResponse
     {
+        $editionId = $winner->edition_id;
         $winner->delete();
+        (new MedalTallyService())->clearCache($editionId);
 
         return redirect()->route('admin.winners.index')
             ->with('success', 'Winner record deleted successfully.');
