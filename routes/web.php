@@ -105,9 +105,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Reports (Admin only)
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/medals', [ReportController::class, 'medals'])->name('reports.medals');
+    Route::get('reports/medals/export', [ReportController::class, 'exportMedals'])->name('reports.medals.export');
     Route::get('reports/winners', [ReportController::class, 'winners'])->name('reports.winners');
+    Route::get('reports/winners/export', [ReportController::class, 'exportWinners'])->name('reports.winners.export');
     Route::get('reports/fixtures', [ReportController::class, 'fixtures'])->name('reports.fixtures');
+    Route::get('reports/fixtures/export', [ReportController::class, 'exportFixtures'])->name('reports.fixtures.export');
     Route::get('reports/teams', [ReportController::class, 'teams'])->name('reports.teams');
+    Route::get('reports/teams/export', [ReportController::class, 'exportTeams'])->name('reports.teams.export');
 });
 
 // Score Entry (Accessible by Admin and Scorer)
