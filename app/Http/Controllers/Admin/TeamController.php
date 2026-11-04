@@ -34,12 +34,18 @@ class TeamController extends Controller
             $query->where('sport_id', $request->input('sport_id'));
         }
 
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
         $teams = $query->paginate(15)->withQueryString();
 
+        $pendingCount = Team::where('status', 'pending')->count();
         $editions = Edition::query()->orderByDesc('year')->get();
         $sports = Sport::query()->orderBy('name')->orderBy('category')->get();
 
-        return view('admin.teams.index', compact('teams', 'editions', 'sports'));
+        return view('admin.teams.index', compact('teams', 'editions', 'sports', 'pendingCount'));
     }
 
     /**
@@ -218,6 +224,36 @@ class TeamController extends Controller
         return redirect()
             ->route('admin.teams.index', ['edition_id' => $targetEdition->id])
             ->with('success', $message);
+    }
+
+    /**
+     * Approve a pending department team.
+     */
+    public function approve(Team $team): RedirectResponse
+    {
+        $team->update([
+            'status' => 'approved',
+            'rejection_reason' => null,
+        ]);
+
+        return back()->with('success', "Team '{$team->name}' has been APPROVED for {$team->edition->title}.");
+    }
+
+    /**
+     * Reject a pending department team with optional feedback.
+     */
+    public function reject(Request $request, Team $team): RedirectResponse
+    {
+        $validated = $request->validate([
+            'rejection_reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $team->update([
+            'status' => 'rejected',
+            'rejection_reason' => $validated['rejection_reason'] ?? 'Squad does not meet participation criteria.',
+        ]);
+
+        return back()->with('success', "Team '{$team->name}' has been REJECTED.");
     }
 }
 

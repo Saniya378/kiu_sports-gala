@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminOnly::class,
             'can.score' => \App\Http\Middleware\CanScore::class,
+            'coordinator' => \App\Http\Middleware\CoordinatorOnly::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

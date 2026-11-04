@@ -19,6 +19,7 @@ class Team extends Model
         'department_id',
         'name',
         'status',
+        'rejection_reason',
     ];
 
     /**

@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WinnerController;
+use App\Http\Controllers\Coordinator\CoordinatorTeamController;
 use App\Http\Controllers\LiveScoreController;
 use App\Http\Controllers\PlayerPassController;
 use App\Http\Controllers\ProfileController;
@@ -61,6 +62,10 @@ Route::get('/dashboard', function () {
         return redirect()->route('admin.score-entry.index');
     }
 
+    if (auth()->user()?->role === 'coordinator') {
+        return redirect()->route('coordinator.teams.index');
+    }
+
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -84,6 +89,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('teams/copy', [TeamController::class, 'copyFromEdition'])->name('teams.copy');
     Route::get('teams/players/sample-csv', [PlayerController::class, 'sampleCsv'])->name('teams.players.sample-csv');
     Route::resource('teams', TeamController::class);
+    Route::post('teams/{team}/approve', [TeamController::class, 'approve'])->name('teams.approve');
+    Route::post('teams/{team}/reject', [TeamController::class, 'reject'])->name('teams.reject');
     Route::post('teams/{team}/players', [PlayerController::class, 'store'])->name('teams.players.store');
     Route::post('teams/{team}/players/import', [PlayerController::class, 'importCsv'])->name('teams.players.import');
     Route::delete('teams/{team}/players/{player}', [PlayerController::class, 'destroy'])->name('teams.players.destroy');
@@ -114,6 +121,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('reports/fixtures/export', [ReportController::class, 'exportFixtures'])->name('reports.fixtures.export');
     Route::get('reports/teams', [ReportController::class, 'teams'])->name('reports.teams');
     Route::get('reports/teams/export', [ReportController::class, 'exportTeams'])->name('reports.teams.export');
+});
+
+// Department Sports Coordinator Portal (Squad Submissions & Player Rosters)
+Route::middleware(['auth', 'coordinator'])->prefix('coordinator')->name('coordinator.')->group(function () {
+    Route::get('/', [CoordinatorTeamController::class, 'index'])->name('dashboard');
+    Route::get('teams', [CoordinatorTeamController::class, 'index'])->name('teams.index');
+    Route::get('teams/create', [CoordinatorTeamController::class, 'create'])->name('teams.create');
+    Route::post('teams', [CoordinatorTeamController::class, 'store'])->name('teams.store');
+    Route::get('teams/{team}', [CoordinatorTeamController::class, 'show'])->name('teams.show');
+    Route::post('teams/{team}/players', [CoordinatorTeamController::class, 'storePlayer'])->name('teams.players.store');
+    Route::post('teams/{team}/players/import', [CoordinatorTeamController::class, 'importCsv'])->name('teams.players.import');
+    Route::delete('teams/{team}/players/{player}', [CoordinatorTeamController::class, 'destroyPlayer'])->name('teams.players.destroy');
+    Route::post('teams/{team}/resubmit', [CoordinatorTeamController::class, 'resubmit'])->name('teams.resubmit');
 });
 
 // Score Entry (Accessible by Admin and Scorer)

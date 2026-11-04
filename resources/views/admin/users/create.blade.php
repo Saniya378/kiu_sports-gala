@@ -47,14 +47,28 @@
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                     Role & Permissions <span class="text-rose-500">*</span>
                 </label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <label class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:border-emerald-300 {{ old('role', 'scorer') === 'scorer' ? 'border-emerald-500 bg-emerald-50/40' : 'border-slate-200 bg-white' }}">
                         <div class="flex items-start space-x-3">
-                            <input type="radio" name="role" value="scorer" class="mt-1 text-emerald-600 focus:ring-emerald-500" {{ old('role', 'scorer') === 'scorer' ? 'checked' : '' }}>
+                            <input type="radio" name="role" value="scorer" class="mt-1 text-emerald-600 focus:ring-emerald-500" {{ old('role', 'scorer') === 'scorer' ? 'checked' : '' }}
+                                   onclick="document.getElementById('dept-select-wrap').classList.add('hidden')">
                             <div>
                                 <span class="block text-sm font-bold text-slate-900">📱 Ground Scorer</span>
                                 <span class="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                                    Can enter scores, live pad updates, upload match photos, and log timeline events.
+                                    Enters scores, live pad, match photos.
+                                </span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:border-amber-300 {{ old('role') === 'coordinator' ? 'border-amber-500 bg-amber-50/40' : 'border-slate-200 bg-white' }}">
+                        <div class="flex items-start space-x-3">
+                            <input type="radio" name="role" value="coordinator" class="mt-1 text-amber-600 focus:ring-amber-500" {{ old('role') === 'coordinator' ? 'checked' : '' }}
+                                   onclick="document.getElementById('dept-select-wrap').classList.remove('hidden')">
+                            <div>
+                                <span class="block text-sm font-bold text-slate-900">🎓 Dept Coordinator</span>
+                                <span class="text-xs text-slate-500 leading-relaxed block mt-0.5">
+                                    Submits department teams & athlete squads.
                                 </span>
                             </div>
                         </div>
@@ -62,17 +76,37 @@
 
                     <label class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:border-indigo-300 {{ old('role') === 'admin' ? 'border-indigo-500 bg-indigo-50/40' : 'border-slate-200 bg-white' }}">
                         <div class="flex items-start space-x-3">
-                            <input type="radio" name="role" value="admin" class="mt-1 text-indigo-600 focus:ring-indigo-500" {{ old('role') === 'admin' ? 'checked' : '' }}>
+                            <input type="radio" name="role" value="admin" class="mt-1 text-indigo-600 focus:ring-indigo-500" {{ old('role') === 'admin' ? 'checked' : '' }}
+                                   onclick="document.getElementById('dept-select-wrap').classList.add('hidden')">
                             <div>
-                                <span class="block text-sm font-bold text-slate-900">🛡️ Full Administrator</span>
+                                <span class="block text-sm font-bold text-slate-900">🛡️ Administrator</span>
                                 <span class="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                                    Full access: Fixtures, teams, sports, reports, officials, and gala settings.
+                                    Full gala management and approvals.
                                 </span>
                             </div>
                         </div>
                     </label>
                 </div>
                 @error('role')
+                    <p class="text-xs text-rose-600 mt-1.5">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Department Assignment (for Coordinators) -->
+            <div id="dept-select-wrap" class="{{ old('role') === 'coordinator' ? '' : 'hidden' }}">
+                <label for="department_id" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                    Assigned Academic Department <span class="text-rose-500">*</span>
+                </label>
+                <select name="department_id" id="department_id"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-amber-400 focus:ring-amber-400 @error('department_id') border-rose-500 @enderror">
+                    <option value="">-- Select Department --</option>
+                    @foreach ($departments as $dept)
+                        <option value="{{ $dept->id }}" {{ old('department_id') == $dept->id ? 'selected' : '' }}>
+                            {{ $dept->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('department_id')
                     <p class="text-xs text-rose-600 mt-1.5">{{ $message }}</p>
                 @enderror
             </div>

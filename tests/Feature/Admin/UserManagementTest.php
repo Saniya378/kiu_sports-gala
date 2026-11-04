@@ -65,6 +65,29 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('secret1234', $created->password));
     }
 
+    public function test_admin_can_create_a_new_department_coordinator(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $dept = \App\Models\Department::create(['name' => 'Computer Science']);
+
+        $response = $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'Dr. Coordinator',
+            'email' => 'cs.coord@kiu.edu.pk',
+            'role' => 'coordinator',
+            'department_id' => $dept->id,
+            'password' => 'secret1234',
+            'password_confirmation' => 'secret1234',
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $this->assertDatabaseHas('users', [
+            'name' => 'Dr. Coordinator',
+            'email' => 'cs.coord@kiu.edu.pk',
+            'role' => 'coordinator',
+            'department_id' => $dept->id,
+        ]);
+    }
+
     public function test_admin_can_update_official_and_reset_password(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

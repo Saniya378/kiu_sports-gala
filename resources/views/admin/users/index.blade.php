@@ -17,7 +17,7 @@
 <div class="space-y-6">
 
     <!-- Overview Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
             <div>
                 <span class="text-xs font-bold uppercase text-slate-400">Total Users</span>
@@ -35,6 +35,16 @@
             </div>
             <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold">
                 🛡️
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold uppercase text-amber-600">Coordinators</span>
+                <p class="text-2xl font-black text-amber-900 mt-1">{{ $coordinatorCount ?? 0 }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 font-bold">
+                🎓
             </div>
         </div>
 
@@ -122,6 +132,15 @@
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
                                         🛡️ Administrator
                                     </span>
+                                @elseif ($user->role === 'coordinator')
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                        🎓 Coordinator
+                                    </span>
+                                    @if ($user->department)
+                                        <span class="block text-[11px] text-slate-500 font-medium mt-0.5">
+                                            {{ $user->department->name }}
+                                        </span>
+                                    @endif
                                 @else
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                         📱 Ground Scorer

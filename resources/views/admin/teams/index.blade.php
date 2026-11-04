@@ -24,11 +24,29 @@
 @section('content')
 <div class="space-y-6">
 
+    @if ($pendingCount > 0)
+        <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl animate-pulse">⏳</span>
+                <div>
+                    <h3 class="font-black text-sm">Squads Awaiting Approval</h3>
+                    <p class="text-xs text-amber-800 mt-0.5">
+                        There are <strong>{{ $pendingCount }} department squad(s)</strong> submitted by Department Sports Coordinators pending review.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('admin.teams.index', ['status' => 'pending']) }}"
+               class="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition-colors self-start sm:self-auto">
+                Review Pending Squads ({{ $pendingCount }}) &rarr;
+            </a>
+        </div>
+    @endif
+
     <!-- Filter Bar -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
         <form method="GET" action="{{ route('admin.teams.index') }}" class="flex flex-col md:flex-row gap-4 items-end">
             <!-- Filter: Edition -->
-            <div class="w-full md:w-64">
+            <div class="w-full md:w-56">
                 <label for="filter_edition" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                     Filter by Edition
                 </label>
@@ -43,7 +61,7 @@
             </div>
 
             <!-- Filter: Sport -->
-            <div class="w-full md:w-64">
+            <div class="w-full md:w-56">
                 <label for="filter_sport" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                     Filter by Sport
                 </label>
@@ -57,12 +75,25 @@
                 </select>
             </div>
 
+            <!-- Filter: Status -->
+            <div class="w-full md:w-48">
+                <label for="filter_status" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Approval Status
+                </label>
+                <select name="status" id="filter_status" class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending Review ({{ $pendingCount }})</option>
+                    <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
+                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </div>
+
             <!-- Buttons -->
             <div class="flex items-center space-x-2">
                 <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors">
                     Filter
                 </button>
-                @if (request()->hasAny(['edition_id', 'sport_id']))
+                @if (request()->hasAny(['edition_id', 'sport_id', 'status']))
                     <a href="{{ route('admin.teams.index') }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors">
                         Clear
                     </a>
@@ -174,6 +205,28 @@
                                 </td>
                                 <td class="py-3.5 px-6 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center space-x-2">
+                                        @if ($team->status === 'pending')
+                                            <form method="POST" action="{{ route('admin.teams.approve', $team) }}" class="inline-block">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors"
+                                                        title="Approve team for gala">
+                                                    ✓ Approve
+                                                </button>
+                                            </form>
+
+                                            <form method="POST" action="{{ route('admin.teams.reject', $team) }}"
+                                                  onsubmit="return prompt('Enter rejection reason for {{ $team->name }}:') ? true : false;"
+                                                  class="inline-block">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold rounded-lg transition-colors"
+                                                        title="Reject team">
+                                                    ✕ Reject
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         <a href="{{ route('teams.id-cards', $team) }}" target="_blank"
                                            class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition-colors inline-flex items-center"
                                            title="Print Official Player ID Passes">

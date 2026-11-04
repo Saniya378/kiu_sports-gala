@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class UserController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = User::query();
+        $query = User::with('department');
 
         if ($request->filled('role')) {
             $query->where('role', $request->role);
@@ -35,8 +36,9 @@ class UserController extends Controller
         $users = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
         $adminCount = User::where('role', 'admin')->count();
         $scorerCount = User::where('role', 'scorer')->count();
+        $coordinatorCount = User::where('role', 'coordinator')->count();
 
-        return view('admin.users.index', compact('users', 'adminCount', 'scorerCount'));
+        return view('admin.users.index', compact('users', 'adminCount', 'scorerCount', 'coordinatorCount'));
     }
 
     /**
@@ -44,18 +46,21 @@ class UserController extends Controller
      */
     public function create(): View
     {
-        return view('admin.users.create');
+        $departments = Department::orderBy('name')->get();
+
+        return view('admin.users.create', compact('departments'));
     }
 
     /**
-     * Store a newly created official / scorer.
+     * Store a newly created official / scorer / coordinator.
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'role' => ['required', 'in:admin,scorer'],
+            'role' => ['required', 'in:admin,scorer,coordinator'],
+            'department_id' => ['nullable', 'required_if:role,coordinator', 'exists:departments,id'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -63,6 +68,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
+            'department_id' => $validated['role'] === 'coordinator' ? $validated['department_id'] : null,
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -75,7 +81,9 @@ class UserController extends Controller
      */
     public function edit(User $user): View
     {
-        return view('admin.users.edit', compact('user'));
+        $departments = Department::orderBy('name')->get();
+
+        return view('admin.users.edit', compact('user', 'departments'));
     }
 
     /**
@@ -93,7 +101,8 @@ class UserController extends Controller
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
-            'role' => ['required', 'in:admin,scorer'],
+            'role' => ['required', 'in:admin,scorer,coordinator'],
+            'department_id' => ['nullable', 'required_if:role,coordinator', 'exists:departments,id'],
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
@@ -106,6 +115,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
+            'department_id' => $validated['role'] === 'coordinator' ? $validated['department_id'] : null,
         ];
 
         if (!empty($validated['password'])) {
