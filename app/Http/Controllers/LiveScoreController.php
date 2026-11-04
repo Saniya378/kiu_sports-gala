@@ -114,6 +114,7 @@ class LiveScoreController extends Controller
                 'stream_url' => $fixture->stream_url,
                 'embed_stream_url' => $fixture->embed_stream_url,
                 'stream_platform' => $fixture->stream_platform,
+                'whatsapp_share_url' => $fixture->whatsapp_share_url,
                 'team1' => [
                     'id' => $fixture->team1_id,
                     'name' => $fixture->team1?->name,

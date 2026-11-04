@@ -156,5 +156,125 @@ class Fixture extends Model
         // 3. Already an embed URL or generic iframe
         return $url;
     }
+
+    /**
+     * Get the real Unicode sport emoji corresponding to the sport discipline.
+     */
+    public function getSportEmojiAttribute(): string
+    {
+        $name = strtolower($this->sport?->name ?? '');
+
+        if (str_contains($name, 'cricket')) {
+            return '🏏';
+        }
+        if (str_contains($name, 'football') || str_contains($name, 'futsal') || str_contains($name, 'soccer')) {
+            return '⚽';
+        }
+        if (str_contains($name, 'basketball')) {
+            return '🏀';
+        }
+        if (str_contains($name, 'volleyball')) {
+            return '🏐';
+        }
+        if (str_contains($name, 'badminton')) {
+            return '🏸';
+        }
+        if (str_contains($name, 'tennis') || str_contains($name, 'table tennis')) {
+            return '🏓';
+        }
+        if (str_contains($name, 'tug of war') || str_contains($name, 'rope')) {
+            return '🪢';
+        }
+        if (str_contains($name, 'athletics') || str_contains($name, 'sprint') || str_contains($name, 'race')) {
+            return '🏃';
+        }
+
+        return '🏅';
+    }
+
+    /**
+     * Generate pre-formatted WhatsApp share message with real Unicode emojis and match details.
+     */
+    public function getWhatsAppShareTextAttribute(): string
+    {
+        $editionTitle = $this->edition?->title ?? 'KIU Sports Gala';
+        $sportEmoji = $this->sport_emoji;
+        $sportName = strtoupper($this->sport?->name ?? 'Match');
+        $category = $this->sport?->category ? ' (' . strtoupper($this->sport->category) . ')' : '';
+        $round = $this->round ? " • {$this->round}" : '';
+        $t1 = $this->team1?->name ?? 'Team 1';
+        $t2 = $this->team2?->name ?? 'Team 2';
+        $matchUrl = route('matches.show', $this);
+
+        $lines = [];
+        $lines[] = "🏆 *{$editionTitle}*";
+        $lines[] = "━━━━━━━━━━━━━━━━━━━━━";
+        $lines[] = "{$sportEmoji} *{$sportName}{$category}*{$round}";
+        $lines[] = "";
+
+        if ($this->status === 'live') {
+            $s1 = $this->result?->team1_score ?? 0;
+            $s2 = $this->result?->team2_score ?? 0;
+            $lines[] = "🔴 *LIVE MATCH UPDATE*";
+            $lines[] = "👉 *{$t1}*: {$s1}";
+            $lines[] = "👉 *{$t2}*: {$s2}";
+            if ($this->result?->summary) {
+                $lines[] = "📝 *Note:* {$this->result->summary}";
+            }
+            if ($this->venue?->name) {
+                $lines[] = "📍 *Venue:* {$this->venue->name}";
+            }
+            $lines[] = "";
+            $lines[] = "📲 *Live Scores & Commentary:*";
+            $lines[] = $matchUrl;
+        } elseif ($this->status === 'completed') {
+            $s1 = $this->result?->team1_score ?? 0;
+            $s2 = $this->result?->team2_score ?? 0;
+            $lines[] = "✅ *FINAL RESULT*";
+            $lines[] = "*{$t1}*: {$s1}";
+            $lines[] = "*{$t2}*: {$s2}";
+            if ($this->result?->winnerTeam) {
+                $lines[] = "🥇 *Winner:* {$this->result->winnerTeam->name} 🏆";
+            } elseif ($s1 == $s2) {
+                $lines[] = "🤝 *Result:* Match Drawn";
+            }
+            if ($this->result?->playerOfTheMatch) {
+                $lines[] = "⭐ *Player of the Match:* {$this->result->playerOfTheMatch->name}";
+            }
+            if ($this->result?->summary) {
+                $lines[] = "📝 *Summary:* {$this->result->summary}";
+            }
+            $lines[] = "";
+            $lines[] = "📊 *Full Scorecard & Action Photos:*";
+            $lines[] = $matchUrl;
+        } else {
+            $lines[] = "📅 *UPCOMING FIXTURE*";
+            $lines[] = "⚔️ *{$t1}* vs *{$t2}*";
+            if ($this->venue?->name) {
+                $lines[] = "📍 *Venue:* {$this->venue->name}";
+            }
+            if ($this->match_date) {
+                $dateStr = $this->match_date->format('D, M d, Y');
+                $timeStr = $this->match_time ? ' at ' . \Carbon\Carbon::parse($this->match_time)->format('g:i A') : '';
+                $lines[] = "🕒 *Schedule:* {$dateStr}{$timeStr}";
+            }
+            $lines[] = "";
+            $lines[] = "📲 *Match Center & Live Updates:*";
+            $lines[] = $matchUrl;
+        }
+
+        $lines[] = "━━━━━━━━━━━━━━━━━━━━━";
+        $lines[] = "_Directorate of Sports & Physical Education, KIU_";
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Get the direct WhatsApp web/app share URL.
+     */
+    public function getWhatsAppShareUrlAttribute(): string
+    {
+        return 'https://api.whatsapp.com/send?text=' . urlencode($this->whatsapp_share_text);
+    }
 }
 

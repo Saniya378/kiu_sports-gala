@@ -38,7 +38,7 @@
                 </span>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap">
                 <div id="live-sync-indicator" class="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[11px] text-slate-400">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>Live Sync: <span id="last-sync-time" class="text-slate-300 font-mono">Connecting...</span></span>
@@ -63,6 +63,16 @@
                         </span>
                     @endif
                 </div>
+
+                <!-- WhatsApp One-Click Match Share Button -->
+                <a id="whatsapp-share-btn" href="{{ $fixture->whatsapp_share_url }}" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 shadow-md shadow-emerald-950/40 hover:scale-105 active:scale-95 transition-all"
+                   title="Share match update on WhatsApp">
+                    <svg class="w-3.5 h-3.5 fill-current text-slate-950 shrink-0" viewBox="0 0 24 24">
+                        <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.044c.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.392-10.416c-5.523 0-10 4.477-10 10 0 1.765.459 3.424 1.261 4.871l-1.341 4.897 5.024-1.317c1.401.764 3.003 1.196 4.707 1.196 5.523 0 10-4.477 10-10s-4.477-10-10-10z"/>
+                    </svg>
+                    <span>Share on WhatsApp</span>
+                </a>
             </div>
         </div>
 
@@ -674,6 +684,12 @@
                         if (noEventsPlaceholder) noEventsPlaceholder.classList.remove('hidden');
                         eventsList.classList.add('hidden');
                     }
+                }
+
+                // Update WhatsApp Share Link
+                const waBtn = document.getElementById('whatsapp-share-btn');
+                if (waBtn && data.whatsapp_share_url) {
+                    waBtn.href = data.whatsapp_share_url;
                 }
 
             } catch (err) {
