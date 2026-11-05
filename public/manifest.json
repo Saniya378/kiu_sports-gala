@@ -1,0 +1,19 @@
+{
+  "name": "KIU Sports Gala Official Portal",
+  "short_name": "KIU Sports",
+  "description": "Official Tournament Management & Live Scoring Portal for Karakoram International University Sports Gala.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["sports", "education"]
+}
+

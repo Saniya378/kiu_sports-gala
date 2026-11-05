@@ -76,6 +76,93 @@
         </div>
     </div>
 
+    <!-- Tournament Group Stages & Pools (if configured) -->
+    @if ($selectedSport && !empty($bracketData['has_groups']) && $bracketData['groups']->isNotEmpty())
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl md:text-2xl font-bold font-sports uppercase tracking-wide text-slate-900 flex items-center gap-2">
+                        <span>🏁</span>
+                        <span>Group Stages &amp; Pool Standings</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Top 2 teams from each group advance to the elimination knockout tree below.</p>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-900 rounded-full border border-amber-300">
+                    {{ $bracketData['groups']->count() }} {{ Str::plural('Group', $bracketData['groups']->count()) }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                @foreach ($bracketData['groups'] as $group)
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 px-4 py-3 flex items-center justify-between text-white border-b border-blue-900">
+                            <span class="font-sports font-black text-sm uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                {{ $group['name'] }}
+                            </span>
+                            <span class="text-[11px] text-slate-300 font-medium">
+                                {{ $group['matches_count'] }} {{ Str::plural('Fixture', $group['matches_count']) }}
+                            </span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-2.5 px-3">#</th>
+                                        <th class="py-2.5 px-3">Department / Team</th>
+                                        <th class="py-2.5 px-2 text-center">P</th>
+                                        <th class="py-2.5 px-2 text-center">W</th>
+                                        <th class="py-2.5 px-2 text-center">D</th>
+                                        <th class="py-2.5 px-2 text-center">L</th>
+                                        <th class="py-2.5 px-2 text-center">Diff</th>
+                                        <th class="py-2.5 px-3 text-right">Pts</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach ($group['teams'] as $idx => $tRow)
+                                        <tr class="hover:bg-slate-50/80 transition-colors {{ $idx < 2 ? 'bg-emerald-50/30' : '' }}">
+                                            <td class="py-2 px-3 font-mono font-bold text-slate-400">
+                                                @if($idx < 2)
+                                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                                                        {{ $idx + 1 }}
+                                                    </span>
+                                                @else
+                                                    {{ $idx + 1 }}
+                                                @endif
+                                            </td>
+                                            <td class="py-2 px-3">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="font-bold text-slate-900">{{ $tRow['team']->name }}</span>
+                                                    @if($idx < 2)
+                                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-tighter">
+                                                            Qualify
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <span class="text-[10px] text-slate-400 block">{{ $tRow['team']->department->name ?? '' }}</span>
+                                            </td>
+                                            <td class="py-2 px-2 text-center font-mono">{{ $tRow['played'] }}</td>
+                                            <td class="py-2 px-2 text-center font-mono text-emerald-700 font-bold">{{ $tRow['won'] }}</td>
+                                            <td class="py-2 px-2 text-center font-mono text-slate-500">{{ $tRow['drawn'] }}</td>
+                                            <td class="py-2 px-2 text-center font-mono text-rose-600">{{ $tRow['lost'] }}</td>
+                                            <td class="py-2 px-2 text-center font-mono text-[11px] {{ $tRow['score_diff'] >= 0 ? 'text-slate-700' : 'text-rose-500' }}">
+                                                {{ $tRow['score_diff'] > 0 ? '+' . $tRow['score_diff'] : $tRow['score_diff'] }}
+                                            </td>
+                                            <td class="py-2 px-3 text-right font-mono font-black text-sm text-blue-950">
+                                                {{ $tRow['points'] }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @if ($selectedSport && $bracketData['rounds']->isNotEmpty())
         <!-- Visual Knockout Bracket Canvas -->
         <div class="overflow-x-auto pb-8 pt-4 -mx-4 px-4 sm:mx-0 sm:px-0">

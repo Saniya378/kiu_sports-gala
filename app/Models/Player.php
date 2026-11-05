@@ -48,4 +48,12 @@ class Player extends Model
     {
         return $this->hasMany(Result::class, 'player_of_the_match_id');
     }
+
+    /**
+     * Get all match timeline events attributed to this player.
+     */
+    public function matchEvents(): HasMany
+    {
+        return $this->hasMany(MatchEvent::class);
+    }
 }

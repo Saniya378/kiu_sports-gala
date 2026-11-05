@@ -8,19 +8,19 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LiveScoreController extends Controller
 {
     /**
-     * Get live scores and status for all matches today (or running edition).
-     * Micro-cached for high-traffic scalability under concurrent spectator loads.
+     * Get structured live scores data for today's matches.
+     * Micro-cached for high-traffic scalability.
      */
-    public function index(Request $request): JsonResponse
+    public function getTodayMatchesData(?int $sportId = null): array
     {
-        $sportId = $request->input('sport_id', 'all');
-        $cacheKey = 'live_scores_today_' . $sportId;
+        $cacheKey = 'live_scores_today_' . ($sportId ?? 'all');
 
-        $data = Cache::remember($cacheKey, 8, function () use ($request) {
+        return Cache::remember($cacheKey, 8, function () use ($sportId) {
             $runningEdition = Edition::where('status', 'running')->first();
 
             if (! $runningEdition) {
@@ -36,8 +36,8 @@ class LiveScoreController extends Controller
                 ->whereDate('match_date', Carbon::today())
                 ->orderBy('match_time', 'asc');
 
-            if ($request->filled('sport_id')) {
-                $query->where('sport_id', $request->sport_id);
+            if ($sportId) {
+                $query->where('sport_id', $sportId);
             }
 
             $fixtures = $query->get();
@@ -52,10 +52,12 @@ class LiveScoreController extends Controller
                     'match_time' => $fixture->match_time,
                     'team1_id' => $fixture->team1_id,
                     'team1_name' => $fixture->team1?->name,
+                    'team1_department_id' => $fixture->team1?->department_id,
                     'team1_department' => $fixture->team1?->department?->name,
                     'team1_score' => $fixture->result?->team1_score ?? null,
                     'team2_id' => $fixture->team2_id,
                     'team2_name' => $fixture->team2?->name,
+                    'team2_department_id' => $fixture->team2?->department_id,
                     'team2_department' => $fixture->team2?->department?->name,
                     'team2_score' => $fixture->result?->team2_score ?? null,
                     'winner_team_id' => $fixture->result?->winner_team_id,
@@ -79,19 +81,16 @@ class LiveScoreController extends Controller
                 'matches' => $matches,
             ];
         });
-
-        return response()->json($data);
     }
 
     /**
-     * Get live score details for a specific fixture.
-     * Micro-cached for 8 seconds to protect against mass browser polling.
+     * Get structured live score data for a single fixture.
      */
-    public function show(Fixture $fixture): JsonResponse
+    public function getFixtureData(Fixture $fixture): array
     {
         $cacheKey = "fixture_live_{$fixture->id}";
 
-        $data = Cache::remember($cacheKey, 8, function () use ($fixture) {
+        return Cache::remember($cacheKey, 8, function () use ($fixture) {
             $fixture->load([
                 'sport',
                 'team1.department',
@@ -158,7 +157,73 @@ class LiveScoreController extends Controller
                 'timestamp' => now()->toIso8601String(),
             ];
         });
+    }
+
+    /**
+     * Get live scores and status for all matches today (JSON).
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $sportId = $request->filled('sport_id') ? (int) $request->sport_id : null;
+        $data = $this->getTodayMatchesData($sportId);
 
         return response()->json($data);
+    }
+
+    /**
+     * Get live score details for a specific fixture (JSON).
+     */
+    public function show(Fixture $fixture): JsonResponse
+    {
+        $data = $this->getFixtureData($fixture);
+
+        return response()->json($data);
+    }
+
+    /**
+     * Server-Sent Events (SSE) real-time stream for today's matches.
+     */
+    public function streamAll(Request $request): StreamedResponse
+    {
+        $sportId = $request->filled('sport_id') ? (int) $request->sport_id : null;
+        $data = $this->getTodayMatchesData($sportId);
+
+        return response()->stream(function () use ($data) {
+            echo "retry: 3000\n";
+            echo "event: today-live-scores\n";
+            echo "data: " . json_encode($data) . "\n\n";
+            if (ob_get_level() > 0) {
+                ob_flush();
+            }
+            flush();
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache, no-transform',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
+
+    /**
+     * Server-Sent Events (SSE) real-time stream for a specific match fixture.
+     */
+    public function streamMatch(Fixture $fixture): StreamedResponse
+    {
+        $data = $this->getFixtureData($fixture);
+
+        return response()->stream(function () use ($data) {
+            echo "retry: 3000\n";
+            echo "event: match-live-score\n";
+            echo "data: " . json_encode($data) . "\n\n";
+            if (ob_get_level() > 0) {
+                ob_flush();
+            }
+            flush();
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache, no-transform',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+        ]);
     }
 }

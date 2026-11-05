@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Edition;
 use App\Models\Fixture;
 use App\Models\Sport;
+use App\Models\Team;
 use App\Models\Winner;
 use Illuminate\Support\Collection;
 
@@ -22,7 +23,7 @@ class BracketService
     ];
 
     /**
-     * Build the tournament bracket data for a given edition and sport.
+     * Build tournament bracket & group stages data for a given edition and sport.
      *
      * @param int|Edition $edition
      * @param int|Sport $sport
@@ -49,27 +50,127 @@ class BracketService
         if ($fixtures->isEmpty()) {
             return [
                 'has_knockout' => false,
+                'has_groups' => false,
+                'groups' => collect(),
                 'rounds' => collect(),
                 'champion' => null,
                 'total_matches' => 0,
             ];
         }
 
-        // Group fixtures into standard rounds
-        $grouped = [];
+        // 1. Separate Group/Pool Matches and Knockout Matches
+        $groupFixtures = collect();
+        $knockoutFixtures = collect();
 
         foreach ($fixtures as $fixture) {
-            $stage = $this->classifyRound($fixture->round);
-
-            if (! isset($grouped[$stage])) {
-                $grouped[$stage] = collect();
+            if ($this->isGroupStage($fixture->round)) {
+                $groupFixtures->push($fixture);
+            } else {
+                $knockoutFixtures->push($fixture);
             }
-
-            $grouped[$stage]->push($fixture);
         }
 
-        // Sort the stages in knockout progression order
-        $sortedRounds = collect($grouped)->sortBy(function ($items, $stageName) {
+        // 2. Compute Group Stages Standings Tables if present
+        $groupStandings = collect();
+        if ($groupFixtures->isNotEmpty()) {
+            $sportModel = $sport instanceof Sport ? $sport : Sport::find($sportId);
+            $isCricket = str_contains(strtolower($sportModel?->name ?? ''), 'cricket');
+            $winPoints = $isCricket ? 2 : 3;
+            $drawPoints = 1;
+
+            $groupedByPool = $groupFixtures->groupBy(function ($f) {
+                return $this->extractGroupName($f->round);
+            })->sortKeys();
+
+            foreach ($groupedByPool as $groupName => $poolMatches) {
+                $teamsMap = [];
+
+                foreach ($poolMatches as $m) {
+                    if ($m->team1 && !isset($teamsMap[$m->team1_id])) {
+                        $teamsMap[$m->team1_id] = $this->initGroupRow($m->team1);
+                    }
+                    if ($m->team2 && !isset($teamsMap[$m->team2_id])) {
+                        $teamsMap[$m->team2_id] = $this->initGroupRow($m->team2);
+                    }
+
+                    if ($m->result && $m->status === 'completed') {
+                        $res = $m->result;
+                        $t1 = $m->team1_id;
+                        $t2 = $m->team2_id;
+
+                        if (isset($teamsMap[$t1])) {
+                            $teamsMap[$t1]['played']++;
+                            $teamsMap[$t1]['score_for'] += (int)$res->team1_score;
+                            $teamsMap[$t1]['score_against'] += (int)$res->team2_score;
+                            $teamsMap[$t1]['score_diff'] = $teamsMap[$t1]['score_for'] - $teamsMap[$t1]['score_against'];
+
+                            if ($res->winner_team_id === $t1) {
+                                $teamsMap[$t1]['won']++;
+                                $teamsMap[$t1]['points'] += $winPoints;
+                            } elseif ($res->winner_team_id === null) {
+                                $teamsMap[$t1]['drawn']++;
+                                $teamsMap[$t1]['points'] += $drawPoints;
+                            } else {
+                                $teamsMap[$t1]['lost']++;
+                            }
+                        }
+
+                        if (isset($teamsMap[$t2])) {
+                            $teamsMap[$t2]['played']++;
+                            $teamsMap[$t2]['score_for'] += (int)$res->team2_score;
+                            $teamsMap[$t2]['score_against'] += (int)$res->team1_score;
+                            $teamsMap[$t2]['score_diff'] = $teamsMap[$t2]['score_for'] - $teamsMap[$t2]['score_against'];
+
+                            if ($res->winner_team_id === $t2) {
+                                $teamsMap[$t2]['won']++;
+                                $teamsMap[$t2]['points'] += $winPoints;
+                            } elseif ($res->winner_team_id === null) {
+                                $teamsMap[$t2]['drawn']++;
+                                $teamsMap[$t2]['points'] += $drawPoints;
+                            } else {
+                                $teamsMap[$t2]['lost']++;
+                            }
+                        }
+                    }
+                }
+
+                // Sort group standings: Points DESC, Score Diff DESC, Won DESC
+                $sortedTeams = collect($teamsMap)->sort(function ($a, $b) {
+                    if ($a['points'] !== $b['points']) {
+                        return $b['points'] <=> $a['points'];
+                    }
+                    if ($a['score_diff'] !== $b['score_diff']) {
+                        return $b['score_diff'] <=> $a['score_diff'];
+                    }
+                    return $b['won'] <=> $a['won'];
+                })->values();
+
+                $groupStandings->push([
+                    'name' => $groupName,
+                    'teams' => $sortedTeams,
+                    'matches_count' => $poolMatches->count(),
+                ]);
+            }
+        }
+
+        // 3. Group Knockout Fixtures into Standard Rounds
+        $groupedKnockout = [];
+
+        // If no explicit knockout fixtures but group fixtures exist and total is small, or all matches are knockout
+        $fixturesForRounds = $knockoutFixtures->isNotEmpty() ? $knockoutFixtures : $fixtures;
+
+        foreach ($fixturesForRounds as $fixture) {
+            $stage = $this->classifyRound($fixture->round);
+
+            if (! isset($groupedKnockout[$stage])) {
+                $groupedKnockout[$stage] = collect();
+            }
+
+            $groupedKnockout[$stage]->push($fixture);
+        }
+
+        // Sort stages in knockout progression order
+        $sortedRounds = collect($groupedKnockout)->sortBy(function ($items, $stageName) {
             return $this->roundOrder[$stageName] ?? 99;
         });
 
@@ -78,11 +179,11 @@ class BracketService
             return in_array($stage, ['Quarter Finals', 'Semi Finals', 'Final', 'Round of 16']);
         });
 
-        // Determine champion: from completed Final fixture or official Winner record
+        // Determine champion
         $champion = null;
 
-        if (isset($grouped['Final'])) {
-            $finalMatch = $grouped['Final']->first(function ($f) {
+        if (isset($groupedKnockout['Final'])) {
+            $finalMatch = $groupedKnockout['Final']->first(function ($f) {
                 return $f->status === 'completed' && $f->result && $f->result->winner_team_id;
             });
 
@@ -111,9 +212,53 @@ class BracketService
 
         return [
             'has_knockout' => $hasKnockout,
+            'has_groups' => $groupStandings->isNotEmpty(),
+            'groups' => $groupStandings,
             'rounds' => $sortedRounds,
             'champion' => $champion,
             'total_matches' => $fixtures->count(),
+        ];
+    }
+
+    /**
+     * Check if a round string denotes a group / pool stage.
+     */
+    protected function isGroupStage(?string $roundName): bool
+    {
+        if (! $roundName) return false;
+        $norm = strtolower($roundName);
+        return str_contains($norm, 'group') || str_contains($norm, 'pool') || str_contains($norm, 'league');
+    }
+
+    /**
+     * Extract human readable group name (e.g. "Group A", "Pool B").
+     */
+    protected function extractGroupName(?string $roundName): string
+    {
+        if (! $roundName) return 'Group Stage';
+
+        if (preg_match('/(group\s+[a-z0-9]|pool\s+[a-z0-9])/i', $roundName, $matches)) {
+            return ucwords(strtolower($matches[1]));
+        }
+
+        return ucwords(trim($roundName));
+    }
+
+    /**
+     * Initialize group standing row for a team.
+     */
+    protected function initGroupRow(Team $team): array
+    {
+        return [
+            'team' => $team,
+            'played' => 0,
+            'won' => 0,
+            'drawn' => 0,
+            'lost' => 0,
+            'score_for' => 0,
+            'score_against' => 0,
+            'score_diff' => 0,
+            'points' => 0,
         ];
     }
 
@@ -151,4 +296,3 @@ class BracketService
         return $roundName; // Keep original if custom round
     }
 }
-

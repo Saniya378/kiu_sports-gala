@@ -138,4 +138,26 @@ class QuickScorerPadTest extends TestCase
 
         $this->assertEquals('live', $this->footballFixture->fresh()->status);
     }
+
+    public function test_quick_pad_displays_offline_resilience_banner_and_pwa_elements(): void
+    {
+        $response = $this->actingAs($this->scorer)->get(route('admin.score-entry.pad', $this->cricketFixture));
+
+        $response->assertStatus(200);
+        $response->assertSee('network-status-banner');
+        $response->assertSee('Offline Safe Mode Active');
+        $response->assertSee('OFFLINE_QUEUE_KEY', false);
+        $response->assertSee('manifest.json');
+    }
+
+    public function test_manifest_json_is_accessible_and_valid(): void
+    {
+        $response = $this->get('/manifest.json');
+        $response->assertStatus(200);
+        $response->assertJson([
+            'name' => 'KIU Sports Gala Official Portal',
+            'short_name' => 'KIU Sports',
+            'display' => 'standalone',
+        ]);
+    }
 }

@@ -96,6 +96,14 @@ class Fixture extends Model
     }
 
     /**
+     * Get video highlights and short reels for this fixture.
+     */
+    public function videos(): HasMany
+    {
+        return $this->hasMany(MatchVideo::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
      * Get the timeline events for this fixture.
      */
     public function events(): HasMany

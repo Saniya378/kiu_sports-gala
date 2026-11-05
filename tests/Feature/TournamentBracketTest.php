@@ -179,4 +179,51 @@ class TournamentBracketTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('No Bracket Matches Configured');
     }
+
+    public function test_bracket_service_calculates_group_stage_standings_and_qualifiers(): void
+    {
+        $edition = Edition::create(['year' => 2026, 'title' => 'KIU Gala 2026', 'status' => 'running']);
+        $sport = Sport::create(['name' => 'Futsal', 'category' => 'boys']);
+
+        $dept1 = Department::create(['name' => 'CS', 'code' => 'CS']);
+        $dept2 = Department::create(['name' => 'BBA', 'code' => 'BBA']);
+        $dept3 = Department::create(['name' => 'EE', 'code' => 'EE']);
+
+        $t1 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sport->id, 'department_id' => $dept1->id, 'name' => 'CS Futsal']);
+        $t2 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sport->id, 'department_id' => $dept2->id, 'name' => 'BBA Futsal']);
+        $t3 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sport->id, 'department_id' => $dept3->id, 'name' => 'EE Futsal']);
+
+        $fix1 = Fixture::create([
+            'edition_id' => $edition->id,
+            'sport_id' => $sport->id,
+            'team1_id' => $t1->id,
+            'team2_id' => $t2->id,
+            'round' => 'Group A - Match 1',
+            'status' => 'completed',
+        ]);
+        Result::create([
+            'fixture_id' => $fix1->id,
+            'team1_score' => 4,
+            'team2_score' => 1,
+            'winner_team_id' => $t1->id,
+        ]);
+
+        $service = new BracketService();
+        $bracket = $service->getBracket($edition, $sport);
+
+        $this->assertTrue($bracket['has_groups']);
+        $this->assertNotEmpty($bracket['groups']);
+        $groupA = $bracket['groups']->firstWhere('name', 'Group A');
+        $this->assertNotNull($groupA);
+        $this->assertEquals('CS Futsal', $groupA['teams'][0]['team']->name);
+        $this->assertEquals(3, $groupA['teams'][0]['points']); // 3 points for win
+
+        // Check public bracket page renders group tables
+        $response = $this->get(route('bracket', ['edition_id' => $edition->id, 'sport_id' => $sport->id]));
+        $response->assertStatus(200);
+        $response->assertSee('Group Stages &amp; Pool Standings', false);
+        $response->assertSee('Group A');
+        $response->assertSee('CS Futsal');
+        $response->assertSee('Qualify');
+    }
 }

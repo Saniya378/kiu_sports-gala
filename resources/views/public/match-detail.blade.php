@@ -506,6 +506,84 @@
             </span>
         </div>
 
+        @php
+            $playerEvents = $fixture->events->filter(fn($e) => $e->player_id !== null);
+            $goals = $playerEvents->where('event_type', 'goal');
+            $wickets = $playerEvents->where('event_type', 'wicket');
+            $boundaries = $playerEvents->whereIn('event_type', ['six', 'four']);
+            $cards = $playerEvents->whereIn('event_type', ['yellow_card', 'red_card']);
+        @endphp
+
+        @if($playerEvents->isNotEmpty())
+            <!-- Key Player Performers Summary Card -->
+            <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 border border-blue-800 rounded-2xl p-4 text-white shadow-sm">
+                <div class="text-[11px] font-sports font-bold uppercase tracking-widest text-amber-400 mb-2.5 flex items-center gap-1.5">
+                    <span>⚡</span>
+                    <span>Match Key Player Highlights</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    @if($goals->isNotEmpty())
+                        <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                            <span class="text-xs font-semibold text-slate-300 block mb-1">⚽ Goal Scorers</span>
+                            <div class="space-y-1">
+                                @foreach($goals->groupBy('player_id') as $pEvents)
+                                    @php $pl = $pEvents->first()->player; @endphp
+                                    <div class="text-xs font-bold text-white flex items-center justify-between">
+                                        <span class="truncate">{{ $pl?->name ?? 'Player' }}</span>
+                                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px]">{{ $pEvents->count() }} {{ Str::plural('goal', $pEvents->count()) }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($wickets->isNotEmpty())
+                        <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                            <span class="text-xs font-semibold text-slate-300 block mb-1">🏏 Wicket Takers</span>
+                            <div class="space-y-1">
+                                @foreach($wickets->groupBy('player_id') as $pEvents)
+                                    @php $pl = $pEvents->first()->player; @endphp
+                                    <div class="text-xs font-bold text-white flex items-center justify-between">
+                                        <span class="truncate">{{ $pl?->name ?? 'Player' }}</span>
+                                        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">{{ $pEvents->count() }} {{ Str::plural('wkt', $pEvents->count()) }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($boundaries->isNotEmpty())
+                        <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                            <span class="text-xs font-semibold text-slate-300 block mb-1">🚀 Big Hitters (4s &amp; 6s)</span>
+                            <div class="space-y-1">
+                                @foreach($boundaries->groupBy('player_id') as $pEvents)
+                                    @php $pl = $pEvents->first()->player; @endphp
+                                    <div class="text-xs font-bold text-white flex items-center justify-between">
+                                        <span class="truncate">{{ $pl?->name ?? 'Player' }}</span>
+                                        <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[10px]">{{ $pEvents->count() }} hits</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($cards->isNotEmpty())
+                        <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                            <span class="text-xs font-semibold text-slate-300 block mb-1">🟨 Disciplinary Cards</span>
+                            <div class="space-y-1">
+                                @foreach($cards as $cEvent)
+                                    <div class="text-xs font-bold text-white flex items-center justify-between">
+                                        <span class="truncate">{{ $cEvent->player?->name ?? 'Player' }}</span>
+                                        <span class="text-sm">{{ $cEvent->event_type === 'red_card' ? '🟥' : '🟨' }} {{ $cEvent->minute ?? '' }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <div id="events-timeline-container" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
             @if($fixture->events->isEmpty())
                 <div id="no-events-placeholder" class="text-center py-8 text-slate-400">
@@ -626,6 +704,246 @@
                 @else
                     <p class="text-sm text-slate-400 italic py-4 text-center">No players registered for this team yet.</p>
                 @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Match Video Highlights & Short Reels Section -->
+    <div class="space-y-4 pt-4" id="match-video-highlights-section">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+            <h3 class="text-xl md:text-2xl font-bold font-sports uppercase tracking-wide text-slate-900 flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-sm shadow-xs">
+                    🎬
+                </span>
+                <span>Match Video Highlights & Short Reels</span>
+                <span class="text-sm font-bold text-rose-600 font-sans">({{ $fixture->videos->count() }})</span>
+            </h3>
+
+            @auth
+                @if(in_array(auth()->user()->role, ['admin', 'scorer']))
+                    <button type="button"
+                            onclick="document.getElementById('add-reel-modal').classList.remove('hidden')"
+                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 transition-colors shadow-xs">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Add Video Reel / Clip</span>
+                    </button>
+                @endif
+            @endauth
+        </div>
+
+        @if($fixture->videos->isNotEmpty())
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                @foreach($fixture->videos as $index => $video)
+                    <div class="group relative bg-slate-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between border border-slate-800">
+                        <!-- Reel Card Thumbnail / Poster -->
+                        <div class="relative aspect-video sm:aspect-[4/3] bg-gradient-to-t from-slate-950 via-slate-900 to-indigo-950 overflow-hidden cursor-pointer"
+                             onclick="openReelViewer({{ $index }})">
+                            @if($video->thumbnail_url)
+                                <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-100">
+                            @else
+                                <div class="w-full h-full flex flex-col items-center justify-center text-slate-500 p-4 bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-950">
+                                    <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-rose-400 font-bold mb-2 shadow-inner">
+                                        🎬
+                                    </div>
+                                    <span class="text-xs font-sports font-bold uppercase tracking-wider text-slate-300 text-center line-clamp-1">
+                                        {{ $fixture->sport->name ?? 'Gala Moment' }}
+                                    </span>
+                                </div>
+                            @endif
+
+                            <!-- Badges -->
+                            <div class="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+                                    {{ $video->type === 'reel' ? '🔥 SHORT REEL' : ($video->type === 'ceremony' ? '🏆 CELEBRATION' : '⚡ HIGHLIGHT') }}
+                                </span>
+                            </div>
+
+                            <div class="absolute bottom-2.5 right-2.5 z-10">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/80 text-amber-300 font-mono border border-slate-700">
+                                    ▶ {{ $video->duration ?: '0:45' }}
+                                </span>
+                            </div>
+
+                            <!-- Big Play Button Overlay -->
+                            <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                <div class="w-12 h-12 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Info & Controls -->
+                        <div class="p-3.5 bg-slate-900 flex-1 flex flex-col justify-between border-t border-slate-800">
+                            <div>
+                                <h4 class="font-bold text-sm text-white group-hover:text-amber-300 transition-colors line-clamp-2 cursor-pointer"
+                                    onclick="openReelViewer({{ $index }})">
+                                    {{ $video->title }}
+                                </h4>
+                                @if($video->caption)
+                                    <p class="text-xs text-slate-400 line-clamp-2 mt-1">{{ $video->caption }}</p>
+                                @endif
+                            </div>
+
+                            <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                                <span>{{ $video->created_at->diffForHumans() }}</span>
+
+                                @auth
+                                    @if(in_array(auth()->user()->role, ['admin', 'scorer']))
+                                        <form action="{{ route('admin.fixtures.videos.destroy', $video) }}" method="POST"
+                                              onsubmit="return confirm('Delete this video highlight clip?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-rose-400 hover:text-rose-300 font-semibold transition-colors">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endauth
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-xs">
+                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
+                    🎬
+                </div>
+                <h4 class="text-base font-bold text-slate-900">No Video Reels Added Yet</h4>
+                <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Short video clips, winning moments, and match reels will be featured here once uploaded by officials.
+                </p>
+            </div>
+        @endif
+    </div>
+
+    <!-- Admin/Scorer Add Video Reel Modal -->
+    @auth
+        @if(in_array(auth()->user()->role, ['admin', 'scorer']))
+            <div id="add-reel-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
+                <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 relative">
+                    <button type="button"
+                            onclick="document.getElementById('add-reel-modal').classList.add('hidden')"
+                            class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold">
+                        &times;
+                    </button>
+
+                    <h3 class="text-lg font-bold font-sports uppercase tracking-wide text-slate-900 flex items-center gap-2 mb-4">
+                        <span>🎬 Add Match Video Highlight / Short Reel</span>
+                    </h3>
+
+                    <form action="{{ route('admin.fixtures.videos.store', $fixture) }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Highlight Title *</label>
+                            <input type="text" name="title" required
+                                   placeholder="e.g. Winning Penalty Shootout, Asim 90m Six"
+                                   class="w-full text-xs rounded-xl border-slate-300 focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Video URL (YouTube Shorts, Watch, Vimeo or MP4) *</label>
+                            <input type="text" name="video_url" required
+                                   placeholder="https://www.youtube.com/shorts/... or https://...mp4"
+                                   class="w-full text-xs rounded-xl border-slate-300 focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3">
+                            <span class="text-[10px] text-slate-400 mt-0.5 block">Supports YouTube Shorts, full YouTube videos, and direct MP4/WebM videos.</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Clip Type</label>
+                                <select name="type" class="w-full text-xs rounded-xl border-slate-300 focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3">
+                                    <option value="reel">🔥 Short Reel (Vertical)</option>
+                                    <option value="highlight">⚡ Key Match Moment</option>
+                                    <option value="ceremony">🏆 Celebration / Award</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Duration</label>
+                                <input type="text" name="duration" placeholder="e.g. 0:45"
+                                       class="w-full text-xs rounded-xl border-slate-300 focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Thumbnail Poster URL (Optional)</label>
+                            <input type="url" name="thumbnail_url" placeholder="https://..."
+                                   class="w-full text-xs rounded-xl border-slate-300 focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Caption / Description</label>
+                            <textarea name="caption" rows="2" placeholder="Brief moment description..."
+                                      class="w-full text-xs rounded-xl border-slate-300 focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3"></textarea>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                            <button type="button"
+                                    onclick="document.getElementById('add-reel-modal').classList.add('hidden')"
+                                    class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-xl">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="px-5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-xs transition-colors">
+                                Save Reel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
+    @endauth
+
+    <!-- Interactive Fullscreen Video Reel Viewer Modal -->
+    <div id="reel-viewer-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+        <!-- Close Button (Top Right) -->
+        <button type="button"
+                onclick="closeReelViewer()"
+                class="absolute top-4 right-4 z-50 w-11 h-11 rounded-full bg-white/10 hover:bg-rose-600 text-white flex items-center justify-center transition-all duration-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <!-- Previous Reel Button -->
+        <button type="button"
+                id="reel-prev-btn"
+                onclick="prevReel()"
+                class="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-rose-600 text-white flex items-center justify-center transition-all duration-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+
+        <!-- Next Reel Button -->
+        <button type="button"
+                id="reel-next-btn"
+                onclick="nextReel()"
+                class="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-rose-600 text-white flex items-center justify-center transition-all duration-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+
+        <!-- Main Reel Content Area -->
+        <div class="relative max-w-4xl max-h-[92vh] w-full flex flex-col items-center justify-center">
+            <!-- Active Video Frame -->
+            <div id="reel-player-container" class="relative w-full aspect-video max-h-[75vh] flex items-center justify-center overflow-hidden rounded-2xl bg-black border border-slate-800 shadow-2xl">
+                <!-- Dynamically injected iframe or video tag -->
+            </div>
+
+            <!-- Reel Info Bar -->
+            <div class="w-full max-w-3xl mt-4 px-5 py-3.5 rounded-2xl bg-[#060b18]/90 border border-rose-500/40 text-center text-white backdrop-blur-sm">
+                <div class="flex items-center justify-center gap-2 mb-1 text-xs">
+                    <span id="reel-type-badge" class="px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-black uppercase tracking-wider text-[10px]">REEL</span>
+                    <span class="text-amber-300 font-bold" id="reel-match-label">{{ $fixture->team1->name ?? 'T1' }} vs {{ $fixture->team2->name ?? 'T2' }}</span>
+                    <span class="text-slate-400">&bull;</span>
+                    <span class="text-slate-300 font-mono text-[11px]" id="reel-counter-label">1 of 1</span>
+                </div>
+                <h4 id="reel-title-display" class="text-base font-bold text-white"></h4>
+                <p id="reel-caption-display" class="text-xs text-slate-300 mt-0.5"></p>
             </div>
         </div>
     </div>
@@ -1093,12 +1411,132 @@
         // Initial sync and set polling interval
         fetchLiveMatch();
 
+        // Server-Sent Events (SSE) Real-Time Stream
+        let matchSseActive = false;
+        if (window.EventSource && currentStatus === 'live') {
+            try {
+                const sseUrl = "{{ route('api.live-scores.stream.match', $fixture) }}";
+                const matchEvtSource = new EventSource(sseUrl);
+
+                matchEvtSource.addEventListener('match-live-score', (e) => {
+                    matchSseActive = true;
+                    try {
+                        const data = JSON.parse(e.data);
+                        // Process live score update
+                        if (lastSyncTimeEl) {
+                            lastSyncTimeEl.textContent = 'SSE Stream: ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        }
+                        const newT1 = data.result ? String(data.result.team1_score) : '-';
+                        const newT2 = data.result ? String(data.result.team2_score) : '-';
+                        if (newT1 !== lastTeam1Score) {
+                            lastTeam1Score = newT1;
+                            if (team1ScoreEl) { team1ScoreEl.textContent = newT1; flashUpdate(team1ScoreEl); }
+                        }
+                        if (newT2 !== lastTeam2Score) {
+                            lastTeam2Score = newT2;
+                            if (team2ScoreEl) { team2ScoreEl.textContent = newT2; flashUpdate(team2ScoreEl); }
+                        }
+                    } catch (err) {
+                        console.warn("SSE match parse error", err);
+                    }
+                });
+
+                matchEvtSource.onerror = () => {
+                    // Falls back to polling if disconnected
+                    matchSseActive = false;
+                };
+            } catch (err) {
+                console.warn("EventSource setup error:", err);
+            }
+        }
+
         // Poll every 5s if live, 8s if scheduled, 30s if completed
-        const intervalMs = (currentStatus === 'live') ? 5000 : (currentStatus === 'scheduled' ? 8000 : 30000);
+        const intervalMs = (currentStatus === 'live') ? 6000 : (currentStatus === 'scheduled' ? 10000 : 30000);
         setInterval(() => {
-            fetchLiveMatch();
+            if (!matchSseActive) {
+                fetchLiveMatch();
+            }
             fetchFanStats();
         }, intervalMs);
+    })();
+
+    // Video Highlight Reels Viewer Logic
+    @php
+        $serializedVideos = $fixture->videos->map(fn($v) => [
+            'id' => $v->id,
+            'title' => $v->title,
+            'type' => $v->type,
+            'duration' => $v->duration,
+            'caption' => $v->caption,
+            'is_direct' => $v->is_direct_video,
+            'video_url' => $v->video_url,
+            'embed_url' => $v->embed_url,
+        ]);
+    @endphp
+    (function() {
+        const matchVideos = @json($serializedVideos);
+
+        let currentReelIndex = 0;
+        const reelModal = document.getElementById('reel-viewer-modal');
+        const reelContainer = document.getElementById('reel-player-container');
+        const reelTitle = document.getElementById('reel-title-display');
+        const reelCaption = document.getElementById('reel-caption-display');
+        const reelTypeBadge = document.getElementById('reel-type-badge');
+        const reelCounter = document.getElementById('reel-counter-label');
+
+        window.openReelViewer = function(index) {
+            if (!matchVideos || matchVideos.length === 0) return;
+            currentReelIndex = index >= 0 && index < matchVideos.length ? index : 0;
+            loadReel(currentReelIndex);
+            if (reelModal) reelModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        window.closeReelViewer = function() {
+            if (reelContainer) reelContainer.innerHTML = '';
+            if (reelModal) reelModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        };
+
+        window.nextReel = function() {
+            if (!matchVideos || matchVideos.length <= 1) return;
+            currentReelIndex = (currentReelIndex + 1) % matchVideos.length;
+            loadReel(currentReelIndex);
+        };
+
+        window.prevReel = function() {
+            if (!matchVideos || matchVideos.length <= 1) return;
+            currentReelIndex = (currentReelIndex - 1 + matchVideos.length) % matchVideos.length;
+            loadReel(currentReelIndex);
+        };
+
+        function loadReel(index) {
+            const item = matchVideos[index];
+            if (!item) return;
+
+            if (reelTitle) reelTitle.textContent = item.title;
+            if (reelCaption) reelCaption.textContent = item.caption || '';
+            if (reelTypeBadge) reelTypeBadge.textContent = (item.type || 'REEL').toUpperCase();
+            if (reelCounter) reelCounter.textContent = (index + 1) + ' of ' + matchVideos.length;
+
+            if (reelContainer) {
+                if (item.is_direct) {
+                    reelContainer.innerHTML = `<video src="${item.video_url}" controls autoplay playsinline class="w-full h-full max-h-[75vh] object-contain"></video>`;
+                } else {
+                    reelContainer.innerHTML = `<iframe src="${item.embed_url}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                }
+            }
+        }
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && reelModal && !reelModal.classList.contains('hidden')) {
+                closeReelViewer();
+            } else if (e.key === 'ArrowRight' && reelModal && !reelModal.classList.contains('hidden')) {
+                nextReel();
+            } else if (e.key === 'ArrowLeft' && reelModal && !reelModal.classList.contains('hidden')) {
+                prevReel();
+            }
+        });
     })();
 </script>
 @endpush

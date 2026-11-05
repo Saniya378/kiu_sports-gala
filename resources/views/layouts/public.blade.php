@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ur' ? 'rtl' : 'ltr' }}" class="h-full scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <title>@yield('title', 'KIU Sports Gala | Karakoram International University')</title>
 
@@ -32,8 +36,19 @@
             <div class="flex items-center space-x-4 text-[11px] text-blue-200">
                 <span class="text-amber-400 font-semibold flex items-center">
                     <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Live Sports Coverage
+                    {{ __('Live Sports Coverage') }}
                 </span>
+
+                <!-- Language Switcher Pill (EN / اردو) -->
+                <div class="inline-flex items-center rounded-lg border border-blue-800 bg-blue-900/80 p-0.5 text-[10px] font-bold">
+                    <a href="{{ route('locale.switch', 'en') }}" class="px-2 py-0.5 rounded transition-colors {{ app()->getLocale() === 'en' ? 'bg-amber-400 text-slate-950 font-black' : 'text-blue-300 hover:text-white' }}">
+                        EN
+                    </a>
+                    <a href="{{ route('locale.switch', 'ur') }}" class="px-2 py-0.5 rounded transition-colors {{ app()->getLocale() === 'ur' ? 'bg-amber-400 text-slate-950 font-black' : 'text-blue-300 hover:text-white' }}">
+                        اردو
+                    </a>
+                </div>
+
                 @auth
                     <a href="{{ auth()->user()->role === 'admin' ? route('admin.dashboard') : (auth()->user()->role === 'scorer' ? route('admin.score-entry.index') : route('dashboard')) }}" class="hover:text-amber-300 transition-colors">
                         Logged in as <strong class="text-white">{{ auth()->user()->name }}</strong> ({{ ucfirst(auth()->user()->role) }})
@@ -80,8 +95,10 @@
                             ['label' => "Today's Matches", 'url' => Route::has('matches.today') ? route('matches.today') : (Route::has('today') ? route('today') : url('/today')), 'active' => request()->is('today*') || request()->routeIs('today*')],
                             ['label' => 'Schedule', 'url' => Route::has('schedule') ? route('schedule') : url('/schedule'), 'active' => (request()->is('schedule*') || request()->routeIs('schedule*')) && !request()->routeIs('bracket*')],
                             ['label' => 'Brackets', 'url' => Route::has('bracket') ? route('bracket') : url('/bracket'), 'active' => request()->is('bracket*') || request()->routeIs('bracket*')],
+                            ['label' => 'Leaderboard', 'url' => Route::has('leaderboard') ? route('leaderboard') : url('/leaderboard'), 'active' => request()->is('leaderboard*') || request()->routeIs('leaderboard*')],
                             ['label' => 'Results', 'url' => Route::has('results') ? route('results') : url('/results'), 'active' => request()->is('results*') || request()->routeIs('results*')],
                             ['label' => 'Teams', 'url' => Route::has('teams.public') ? route('teams.public') : (Route::has('teams') ? route('teams') : url('/teams')), 'active' => (request()->is('teams*') && !request()->is('admin*')) || request()->routeIs('teams.public')],
+                            ['label' => 'Team Trials', 'url' => Route::has('trials.create') ? route('trials.create') : url('/trials'), 'active' => request()->is('trials*') || request()->routeIs('trials*')],
                             ['label' => 'Archive', 'url' => Route::has('archive') ? route('archive') : url('/archive'), 'active' => request()->is('archive*') || request()->routeIs('archive*')],
                             ['label' => 'Hall of Fame', 'url' => Route::has('hall-of-fame') ? route('hall-of-fame') : url('/hall-of-fame'), 'active' => request()->is('hall-of-fame*') || request()->routeIs('hall-of-fame*')],
                             ['label' => 'Gallery', 'url' => Route::has('gallery') ? route('gallery') : url('/gallery'), 'active' => request()->is('gallery*') || request()->routeIs('gallery*')],
@@ -94,7 +111,7 @@
                     @foreach ($links as $link)
                         <a href="{{ $link['url'] }}"
                            class="px-2 py-1.5 rounded-lg text-xs font-sports uppercase tracking-wider font-bold transition-all duration-150 {{ $link['active'] ? 'text-blue-950 bg-amber-400/20 shadow-xs border-b-2 border-amber-500' : 'text-slate-700 hover:text-blue-700 hover:bg-slate-100' }}">
-                            {{ $link['label'] }}
+                            {{ __($link['label']) }}
                         </a>
                     @endforeach
                 </nav>
@@ -104,7 +121,7 @@
                     @foreach (array_slice($links, 0, 6) as $link)
                         <a href="{{ $link['url'] }}"
                            class="px-2 py-1.5 rounded-lg text-[11px] font-sports uppercase tracking-wider font-bold transition-all duration-150 {{ $link['active'] ? 'text-blue-950 bg-amber-400/20 border-b-2 border-amber-500' : 'text-slate-700 hover:text-blue-700 hover:bg-slate-100' }}">
-                            {{ $link['label'] }}
+                            {{ __($link['label']) }}
                         </a>
                     @endforeach
 
@@ -122,7 +139,7 @@
                             @foreach (array_slice($links, 6) as $link)
                                 <a href="{{ $link['url'] }}"
                                    class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:text-blue-700 hover:bg-slate-100 {{ $link['active'] ? 'text-blue-900 bg-amber-50' : '' }}">
-                                    {{ $link['label'] }}
+                                    {{ __($link['label']) }}
                                 </a>
                             @endforeach
                         </div>
@@ -195,10 +212,19 @@
 
         <!-- Mobile Drawer Navigation (Slide-down with Clean White & Blue Theme) -->
         <div id="mobile-nav-menu" class="hidden lg:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-6 space-y-1 shadow-lg">
+            <!-- Mobile Language Switcher -->
+            <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Language / زبان</span>
+                <div class="inline-flex items-center rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
+                    <a href="{{ route('locale.switch', 'en') }}" class="px-3 py-1 rounded {{ app()->getLocale() === 'en' ? 'bg-amber-400 text-slate-950 font-black' : 'text-slate-600' }}">English</a>
+                    <a href="{{ route('locale.switch', 'ur') }}" class="px-3 py-1 rounded {{ app()->getLocale() === 'ur' ? 'bg-amber-400 text-slate-950 font-black' : 'text-slate-600' }}">اردو</a>
+                </div>
+            </div>
+
             @foreach ($links as $link)
                 <a href="{{ $link['url'] }}"
                    class="block px-3 py-2.5 rounded-lg text-sm font-sports uppercase tracking-wider font-bold transition-colors {{ $link['active'] ? 'text-blue-900 bg-amber-50 border-l-4 border-amber-500' : 'text-slate-700 hover:text-blue-700 hover:bg-slate-50' }}">
-                    {{ $link['label'] }}
+                    {{ __($link['label']) }}
                 </a>
             @endforeach
 
@@ -397,6 +423,12 @@
                 dropdown.classList.add('hidden');
             }
         });
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration error:', err));
+            });
+        }
     </script>
 
     @stack('scripts')

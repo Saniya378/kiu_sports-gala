@@ -176,5 +176,64 @@ class LiveScoreTest extends TestCase
             ->assertSee('live-sync-indicator')
             ->assertSee(route('api.live-scores.show', $fixture));
     }
+
+    public function test_sse_stream_all_endpoint_returns_event_stream_headers_and_payload(): void
+    {
+        $edition = Edition::create(['year' => 2026, 'title' => 'Gala 2026', 'status' => 'running']);
+        $sport = Sport::create(['name' => 'Cricket', 'category' => 'boys']);
+        $dept1 = Department::create(['name' => 'CS']);
+        $dept2 = Department::create(['name' => 'BBA']);
+        $team1 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sport->id, 'department_id' => $dept1->id, 'name' => 'CS XI']);
+        $team2 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sport->id, 'department_id' => $dept2->id, 'name' => 'BBA XI']);
+
+        $fixture = Fixture::create([
+            'edition_id' => $edition->id,
+            'sport_id' => $sport->id,
+            'team1_id' => $team1->id,
+            'team2_id' => $team2->id,
+            'match_date' => Carbon::today(),
+            'status' => 'live',
+        ]);
+
+        $response = $this->get(route('api.live-scores.stream'));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('event: today-live-scores', $content);
+        $this->assertStringContainsString((string) $fixture->id, $content);
+    }
+
+    public function test_sse_stream_single_match_endpoint_returns_event_stream(): void
+    {
+        $edition = Edition::create(['year' => 2026, 'title' => 'Gala 2026', 'status' => 'running']);
+        $sport = Sport::create(['name' => 'Football', 'category' => 'boys']);
+        $dept1 = Department::create(['name' => 'CS']);
+        $dept2 = Department::create(['name' => 'Bio']);
+        $team1 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sport->id, 'department_id' => $dept1->id, 'name' => 'CS FC']);
+        $team2 = Team::create(['edition_id' => $edition->id, 'sport_id' => $sport->id, 'department_id' => $dept2->id, 'name' => 'Bio FC']);
+
+        $fixture = Fixture::create([
+            'edition_id' => $edition->id,
+            'sport_id' => $sport->id,
+            'team1_id' => $team1->id,
+            'team2_id' => $team2->id,
+            'status' => 'live',
+        ]);
+
+        Result::create([
+            'fixture_id' => $fixture->id,
+            'team1_score' => 3,
+            'team2_score' => 2,
+        ]);
+
+        $response = $this->get(route('api.live-scores.stream.match', $fixture));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('event: match-live-score', $content);
+        $this->assertStringContainsString('CS FC', $content);
+    }
 }
 

@@ -122,6 +122,10 @@
                                 $photoIndex = $globalIndex;
                                 $allLightboxItems[] = [
                                     'url' => $photo['image_url'],
+                                    'is_video' => $photo['is_video'] ?? false,
+                                    'video_url' => $photo['video_url'] ?? null,
+                                    'embed_url' => $photo['embed_url'] ?? null,
+                                    'is_direct_video' => $photo['is_direct_video'] ?? false,
                                     'caption' => $photo['caption'],
                                     'tag' => $photo['tag'],
                                     'type' => $photo['type'],
@@ -140,18 +144,35 @@
                                          loading="lazy">
 
                                     <!-- Tag Badge -->
-                                    <div class="absolute top-2.5 left-2.5 z-10">
+                                    <div class="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
+                                        @if($photo['is_video'] ?? false)
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+                                                🎬 REEL
+                                            </span>
+                                        @endif
                                         <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-md text-amber-300 border border-amber-400/40">
                                             {{ $photo['tag'] }}
                                         </span>
                                     </div>
 
+                                    @if($photo['is_video'] ?? false)
+                                        <div class="absolute bottom-2.5 right-2.5 z-10">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/80 text-white">
+                                                ▶ {{ $photo['duration'] ?? '0:45' }}
+                                            </span>
+                                        </div>
+                                    @endif
+
                                     <!-- Hover Overlay Icon -->
                                     <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                        <div class="w-10 h-10 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                            </svg>
+                                        <div class="w-12 h-12 rounded-full {{ ($photo['is_video'] ?? false) ? 'bg-rose-600 text-white animate-pulse' : 'bg-amber-400 text-slate-950' }} flex items-center justify-center font-bold shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
+                                            @if($photo['is_video'] ?? false)
+                                                <svg class="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                            @else
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                                </svg>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -163,8 +184,8 @@
                                     </p>
                                     <div class="mt-2.5 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
                                         <span>{{ $photo['type'] }}</span>
-                                        <span class="font-bold text-amber-600 flex items-center gap-1">
-                                            Zoom &bull; Lightbox
+                                        <span class="font-bold {{ ($photo['is_video'] ?? false) ? 'text-rose-600' : 'text-amber-600' }} flex items-center gap-1">
+                                            {{ ($photo['is_video'] ?? false) ? '▶ Watch Reel' : 'Zoom • Lightbox' }}
                                         </span>
                                     </div>
                                 </div>
@@ -217,9 +238,20 @@
         <div class="relative max-w-5xl max-h-[92vh] w-full p-4 flex flex-col items-center justify-center"
              @click.outside="closeLightbox()">
 
-            <!-- Active Image Container -->
-            <div class="relative max-h-[75vh] flex items-center justify-center overflow-hidden rounded-xl bg-black/60 border border-slate-800 shadow-2xl">
-                <template x-if="images[currentIndex]">
+            <!-- Active Media Container -->
+            <div class="relative max-h-[75vh] w-full flex items-center justify-center overflow-hidden rounded-xl bg-black/60 border border-slate-800 shadow-2xl">
+                <template x-if="images[currentIndex] && images[currentIndex].is_video">
+                    <div class="w-full max-w-3xl aspect-video bg-black flex items-center justify-center">
+                        <template x-if="images[currentIndex].is_direct_video">
+                            <video :src="images[currentIndex].video_url" controls autoplay class="w-full h-full object-contain"></video>
+                        </template>
+                        <template x-if="!images[currentIndex].is_direct_video">
+                            <iframe :src="images[currentIndex].embed_url" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </template>
+                    </div>
+                </template>
+
+                <template x-if="images[currentIndex] && !images[currentIndex].is_video">
                     <img :src="images[currentIndex].url"
                          :alt="images[currentIndex].caption"
                          class="max-h-[75vh] max-w-full object-contain select-none transition-all duration-200">

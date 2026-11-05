@@ -52,12 +52,56 @@
         </div>
     </div>
 
+    <!-- Department Follow & Live Alert Preferences Toolbar -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="flex items-center gap-2 text-slate-800">
+                <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm shadow-xs">⭐</span>
+                <div>
+                    <h3 class="font-sports font-black uppercase tracking-wide text-xs text-slate-900">Follow Your Department</h3>
+                    <p class="text-[11px] text-slate-500 font-medium">Highlight your team's matches and receive live browser alerts</p>
+                </div>
+            </div>
+
+            <div class="relative min-w-[220px]">
+                <label for="followed-department-select" class="sr-only">Select Department</label>
+                <select id="followed-department-select"
+                        class="w-full text-xs font-semibold rounded-xl border-slate-300 bg-slate-50 text-slate-800 py-2.5 px-3 focus:border-amber-400 focus:ring-amber-400 shadow-xs">
+                    <option value="">-- No Department Followed --</option>
+                    @if(isset($departments))
+                        @foreach ($departments as $dept)
+                            <option value="{{ $dept->id }}" {{ ($followedDepartmentId ?? null) == $dept->id ? 'selected' : '' }}>
+                                {{ $dept->name }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 self-start md:self-auto">
+            <button id="btn-toggle-notifications" type="button"
+                    class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-all duration-200 shadow-xs">
+                <svg id="bell-icon" class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span id="notification-btn-label">Enable Live Alerts</span>
+            </button>
+            <span id="followed-dept-status-indicator" class="hidden sm:inline-flex items-center text-[11px] font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/80">
+                ⭐ Watching
+            </span>
+        </div>
+    </div>
+
     <!-- Match Cards Grid -->
     @if ($runningEdition)
         @if ($fixtures->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach ($fixtures as $fixture)
-                    <div data-fixture-card="{{ $fixture->id }}" class="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_28px_-6px_rgba(15,23,42,0.14)] hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col justify-between group">
+                    <div data-fixture-card="{{ $fixture->id }}"
+                         data-team1-dept="{{ $fixture->team1->department_id }}"
+                         data-team2-dept="{{ $fixture->team2->department_id }}"
+                         class="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_28px_-6px_rgba(15,23,42,0.14)] hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col justify-between group">
                         <!-- Premier League / FIFA Header Bar (Unified Athletic Navy/Blue) -->
                         <div class="bg-gradient-to-r from-blue-950 via-indigo-950 to-blue-900 px-4 py-2.5 border-b border-blue-800/80 flex items-center justify-between text-xs text-white">
                             <div class="flex items-center space-x-2">
@@ -68,6 +112,7 @@
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $fixture->sport->category === 'girls' ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' }}">
                                     {{ ucfirst($fixture->sport->category) }}
                                 </span>
+                                <div data-dept-badge="{{ $fixture->id }}"></div>
                             </div>
 
                             <div class="flex items-center gap-2">
@@ -215,7 +260,147 @@
 @push('scripts')
 <script>
     (function() {
-        const endpoint = "{{ route('api.live-scores.index') }}";
+        const jsonEndpoint = "{{ route('api.live-scores.index') }}";
+        const sseEndpoint = "{{ route('api.live-scores.stream') }}" + (window.location.search || '');
+        const followEndpoint = "{{ route('api.department.follow') }}";
+        const syncPill = document.getElementById('today-sync-pill');
+        const deptSelect = document.getElementById('followed-department-select');
+        const deptStatusIndicator = document.getElementById('followed-dept-status-indicator');
+        const notifBtn = document.getElementById('btn-toggle-notifications');
+        const notifBtnLabel = document.getElementById('notification-btn-label');
+        const bellIcon = document.getElementById('bell-icon');
+
+        let currentFollowedDept = {{ $followedDepartmentId ? (int)$followedDepartmentId : 'null' }};
+        const cachedDept = localStorage.getItem('kiu_followed_dept_id');
+        if (!currentFollowedDept && cachedDept) {
+            currentFollowedDept = parseInt(cachedDept);
+            if (deptSelect) deptSelect.value = cachedDept;
+        }
+
+        const matchPreviousStates = {};
+
+        function applyDepartmentHighlight(deptId) {
+            const cards = document.querySelectorAll('[data-fixture-card]');
+            let matchCount = 0;
+
+            cards.forEach(card => {
+                const t1 = card.getAttribute('data-team1-dept');
+                const t2 = card.getAttribute('data-team2-dept');
+                const badgeHolder = card.querySelector('[data-dept-badge]');
+
+                if (deptId && (t1 == deptId || t2 == deptId)) {
+                    matchCount++;
+                    card.classList.add('ring-2', 'ring-amber-400', 'border-amber-400', 'bg-amber-50/15');
+                    if (badgeHolder) {
+                        badgeHolder.innerHTML = '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 font-sports shadow-xs">⭐ My Dept</span>';
+                    }
+                } else {
+                    card.classList.remove('ring-2', 'ring-amber-400', 'border-amber-400', 'bg-amber-50/15');
+                    if (badgeHolder) {
+                        badgeHolder.innerHTML = '';
+                    }
+                }
+            });
+
+            if (deptStatusIndicator) {
+                if (deptId && deptSelect && deptSelect.selectedIndex > 0) {
+                    const deptName = deptSelect.options[deptSelect.selectedIndex].text;
+                    deptStatusIndicator.classList.remove('hidden');
+                    deptStatusIndicator.textContent = `⭐ Watching: ${deptName} (${matchCount} match${matchCount === 1 ? '' : 'es'})`;
+                } else {
+                    deptStatusIndicator.classList.add('hidden');
+                }
+            }
+        }
+
+        // Department Selection Change Listener
+        if (deptSelect) {
+            deptSelect.addEventListener('change', async function() {
+                const newDeptId = this.value ? parseInt(this.value) : null;
+                currentFollowedDept = newDeptId;
+
+                if (newDeptId) {
+                    localStorage.setItem('kiu_followed_dept_id', String(newDeptId));
+                } else {
+                    localStorage.removeItem('kiu_followed_dept_id');
+                }
+
+                applyDepartmentHighlight(newDeptId);
+
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    await fetch(followEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': token || ''
+                        },
+                        body: JSON.stringify({ department_id: newDeptId })
+                    });
+                } catch (e) {
+                    console.warn("Could not save followed department to session:", e);
+                }
+            });
+        }
+
+        // Web Browser Alerts / HTML5 Notification
+        function updateNotificationButtonUI() {
+            if (!('Notification' in window)) {
+                if (notifBtn) notifBtn.style.display = 'none';
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                if (notifBtn) {
+                    notifBtn.className = "inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs transition-colors";
+                }
+                if (notifBtnLabel) notifBtnLabel.textContent = "Live Alerts Active";
+                if (bellIcon) {
+                    bellIcon.classList.remove('text-slate-500');
+                    bellIcon.classList.add('text-white');
+                }
+            } else if (Notification.permission === 'denied') {
+                if (notifBtnLabel) notifBtnLabel.textContent = "Alerts Blocked";
+                if (notifBtn) notifBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            } else {
+                if (notifBtnLabel) notifBtnLabel.textContent = "Enable Live Alerts";
+            }
+        }
+
+        function triggerBrowserAlert(title, message) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification(title, {
+                        body: message,
+                        icon: '/favicon.ico'
+                    });
+                } catch (err) {
+                    console.warn("Notification error:", err);
+                }
+            }
+        }
+
+        if (notifBtn) {
+            notifBtn.addEventListener('click', async function() {
+                if (!('Notification' in window)) {
+                    alert('Browser Notifications are not supported in your browser.');
+                    return;
+                }
+
+                if (Notification.permission === 'default') {
+                    const permission = await Notification.requestPermission();
+                    updateNotificationButtonUI();
+                    if (permission === 'granted') {
+                        triggerBrowserAlert('KIU Sports Gala Live Alerts', 'Match notifications enabled! You will receive live score updates for your department.');
+                    }
+                } else if (Notification.permission === 'granted') {
+                    triggerBrowserAlert('KIU Sports Gala', 'Alerts are active! Watching live scores.');
+                } else {
+                    alert('Notifications have been blocked in your browser settings. Please enable them to receive live score alerts.');
+                }
+            });
+        }
 
         function flashUpdate(el) {
             if (!el) return;
@@ -225,65 +410,129 @@
             }, 600);
         }
 
+        function updateMatchesUI(data) {
+            if (!data.matches || !Array.isArray(data.matches)) return;
+
+            data.matches.forEach(match => {
+                const prev = matchPreviousStates[match.id];
+
+                // Check for followed department notifications
+                if (currentFollowedDept && prev && (match.team1_department_id == currentFollowedDept || match.team2_department_id == currentFollowedDept)) {
+                    // Status change notification
+                    if (prev.status !== match.status) {
+                        triggerBrowserAlert(
+                            `KIU Match Alert: ${match.sport || 'Sports'}`,
+                            `${match.team1_name} vs ${match.team2_name} is now ${match.status.toUpperCase()}!`
+                        );
+                    }
+                    // Score change notification
+                    else if ((prev.team1_score !== match.team1_score || prev.team2_score !== match.team2_score) && (match.team1_score !== null || match.team2_score !== null)) {
+                        triggerBrowserAlert(
+                            `Score Alert: ${match.sport || 'Match Update'}`,
+                            `${match.team1_name} ${match.team1_score ?? 0} - ${match.team2_score ?? 0} ${match.team2_name}`
+                        );
+                    }
+                }
+
+                // Cache state
+                matchPreviousStates[match.id] = {
+                    status: match.status,
+                    team1_score: match.team1_score,
+                    team2_score: match.team2_score
+                };
+
+                // Update Score 1
+                const score1El = document.querySelector(`[data-team1-score="${match.id}"]`);
+                if (score1El) {
+                    const newScore1 = match.team1_score !== null ? String(match.team1_score) : '-';
+                    if (score1El.textContent.trim() !== newScore1) {
+                        score1El.textContent = newScore1;
+                        flashUpdate(score1El);
+                    }
+                }
+
+                // Update Score 2
+                const score2El = document.querySelector(`[data-team2-score="${match.id}"]`);
+                if (score2El) {
+                    const newScore2 = match.team2_score !== null ? String(match.team2_score) : '-';
+                    if (score2El.textContent.trim() !== newScore2) {
+                        score2El.textContent = newScore2;
+                        flashUpdate(score2El);
+                    }
+                }
+
+                // Update Status Badge
+                const badgeContainer = document.querySelector(`[data-status-badge="${match.id}"]`);
+                if (badgeContainer) {
+                    if (match.status === 'live') {
+                        badgeContainer.innerHTML = `
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs shadow-rose-950/40 animate-pulse">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                LIVE
+                            </span>
+                        `;
+                    } else if (match.status === 'completed') {
+                        badgeContainer.innerHTML = `
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-amber-400 border border-slate-700">
+                                FINAL
+                            </span>
+                        `;
+                    }
+                }
+            });
+
+            // Re-apply highlight to ensure new cards or dynamic states are styled
+            applyDepartmentHighlight(currentFollowedDept);
+        }
+
         async function pollTodayScores() {
             try {
-                const response = await fetch(endpoint, {
+                const response = await fetch(jsonEndpoint, {
                     headers: { 'Accept': 'application/json' }
                 });
-
                 if (!response.ok) return;
-
                 const data = await response.json();
-
-                if (!data.matches || !Array.isArray(data.matches)) return;
-
-                data.matches.forEach(match => {
-                    // Update Score 1
-                    const score1El = document.querySelector(`[data-team1-score="${match.id}"]`);
-                    if (score1El) {
-                        const newScore1 = match.team1_score !== null ? String(match.team1_score) : '-';
-                        if (score1El.textContent.trim() !== newScore1) {
-                            score1El.textContent = newScore1;
-                            flashUpdate(score1El);
-                        }
-                    }
-
-                    // Update Score 2
-                    const score2El = document.querySelector(`[data-team2-score="${match.id}"]`);
-                    if (score2El) {
-                        const newScore2 = match.team2_score !== null ? String(match.team2_score) : '-';
-                        if (score2El.textContent.trim() !== newScore2) {
-                            score2El.textContent = newScore2;
-                            flashUpdate(score2El);
-                        }
-                    }
-
-                    // Update Status Badge
-                    const badgeContainer = document.querySelector(`[data-status-badge="${match.id}"]`);
-                    if (badgeContainer) {
-                        if (match.status === 'live') {
-                            badgeContainer.innerHTML = `
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs shadow-rose-950/40 animate-pulse">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                                    LIVE
-                                </span>
-                            `;
-                        } else if (match.status === 'completed') {
-                            badgeContainer.innerHTML = `
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-amber-400 border border-slate-700">
-                                    FINAL
-                                </span>
-                            `;
-                        }
-                    }
-                });
+                updateMatchesUI(data);
             } catch (err) {
-                console.error("Today matches poll error:", err);
+                console.warn("Today matches poll error:", err);
             }
         }
 
-        // Poll every 8 seconds
-        setInterval(pollTodayScores, 8000);
+        // Initialize UI states
+        applyDepartmentHighlight(currentFollowedDept);
+        updateNotificationButtonUI();
+
+        // 1. Try Native Server-Sent Events (SSE) Stream
+        let sseActive = false;
+        if (window.EventSource) {
+            try {
+                const evtSource = new EventSource(sseEndpoint);
+
+                evtSource.addEventListener('today-live-scores', (event) => {
+                    sseActive = true;
+                    if (syncPill) {
+                        syncPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Real-time Live Stream';
+                    }
+                    try {
+                        const data = JSON.parse(event.data);
+                        updateMatchesUI(data);
+                    } catch (e) {
+                        console.error("SSE parse error", e);
+                    }
+                });
+
+                evtSource.onerror = () => {
+                    if (!sseActive) {
+                        // Fall back to polling if SSE is blocked or unavailable
+                        setInterval(pollTodayScores, 8000);
+                    }
+                };
+            } catch (e) {
+                setInterval(pollTodayScores, 8000);
+            }
+        } else {
+            setInterval(pollTodayScores, 8000);
+        }
     })();
 </script>
 @endpush

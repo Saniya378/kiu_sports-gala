@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\EditionPhotoController;
 use App\Http\Controllers\Admin\FixtureController;
 use App\Http\Controllers\Admin\MatchEventController;
 use App\Http\Controllers\Admin\MatchPhotoController;
+use App\Http\Controllers\Admin\MatchVideoController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\PointsTableController;
@@ -19,32 +20,62 @@ use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WinnerController;
 use App\Http\Controllers\CeremonyController;
 use App\Http\Controllers\Coordinator\CoordinatorTeamController;
+use App\Http\Controllers\Coordinator\CoordinatorTrialController;
 use App\Http\Controllers\FanEngagementController;
 use App\Http\Controllers\LiveScoreController;
 use App\Http\Controllers\PlayerPassController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\StudentTrialController;
 use Illuminate\Support\Facades\Route;
 
-// Live Scores API (Polling & Real-time updates)
-Route::get('/api/live-scores', [LiveScoreController::class, 'index'])->name('api.live-scores.index');
-Route::get('/api/matches/{fixture}/live', [LiveScoreController::class, 'show'])->name('api.live-scores.show');
+// PWA Manifest
+Route::get('/manifest.json', function () {
+    return response()->json(json_decode(file_get_contents(public_path('manifest.json')), true));
+});
 
-// Fan Engagement & Spectator Reactions
-Route::post('/matches/{fixture}/vote', [FanEngagementController::class, 'vote'])->name('matches.vote');
-Route::post('/matches/{fixture}/react', [FanEngagementController::class, 'react'])->name('matches.react');
-Route::get('/matches/{fixture}/fan-stats', [FanEngagementController::class, 'stats'])->name('matches.fan-stats');
+// Locale Switcher (English / Urdu)
+Route::get('/locale/{lang}', function (string $lang) {
+    if (in_array($lang, ['en', 'ur'])) {
+        session(['locale' => $lang]);
+    }
+    return back();
+})->name('locale.switch');
+
+// Live Scores API & Real-time Server-Sent Events (SSE) Stream (Throttled for high load)
+Route::middleware('throttle:120,1')->group(function () {
+    Route::get('/api/live-scores', [LiveScoreController::class, 'index'])->name('api.live-scores.index');
+    Route::get('/api/live-scores/stream', [LiveScoreController::class, 'streamAll'])->name('api.live-scores.stream');
+    Route::get('/api/matches/{fixture}/live', [LiveScoreController::class, 'show'])->name('api.live-scores.show');
+    Route::get('/api/matches/{fixture}/stream', [LiveScoreController::class, 'streamMatch'])->name('api.live-scores.stream.match');
+});
+
+// Department Follow & Match Notifications
+Route::post('/api/follow-department', [PublicController::class, 'followDepartment'])->name('api.department.follow');
+Route::get('/api/followed-department', [PublicController::class, 'getFollowedDepartment'])->name('api.department.followed');
+
+// Fan Engagement & Spectator Reactions (Throttled against click-spam & tampering)
+Route::post('/matches/{fixture}/vote', [FanEngagementController::class, 'vote'])->middleware('throttle:20,1')->name('matches.vote');
+Route::post('/matches/{fixture}/react', [FanEngagementController::class, 'react'])->middleware('throttle:60,1')->name('matches.react');
+Route::get('/matches/{fixture}/fan-stats', [FanEngagementController::class, 'stats'])->middleware('throttle:120,1')->name('matches.fan-stats');
 
 // Player Digital Pass & Accreditation Verification
 Route::get('/players/{player}/card', [PlayerPassController::class, 'show'])->name('players.card');
 Route::get('/verify/player/{player}', [PlayerPassController::class, 'show'])->name('players.verify');
 Route::get('/teams/{team}/id-cards', [PlayerPassController::class, 'teamCards'])->name('teams.id-cards');
 
+// Student Trials & Tryouts Registration
+Route::get('/trials', [StudentTrialController::class, 'create'])->name('trials.create');
+Route::post('/trials', [StudentTrialController::class, 'store'])->name('trials.store');
+Route::get('/trials/{trial}/slip', [StudentTrialController::class, 'slip'])->name('trials.slip');
+
 // Public Pages
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/today', [PublicController::class, 'today'])->name('today');
 Route::get('/schedule', [PublicController::class, 'schedule'])->name('schedule');
 Route::get('/bracket', [PublicController::class, 'bracket'])->name('bracket');
+Route::get('/leaderboard', [PublicController::class, 'leaderboard'])->name('leaderboard');
+Route::get('/players/{player}', [PublicController::class, 'playerProfile'])->name('players.profile');
 Route::get('/matches/{fixture}', [PublicController::class, 'matchDetail'])->name('matches.show');
 Route::get('/results', [PublicController::class, 'results'])->name('results');
 Route::get('/archive', [PublicController::class, 'archive'])->name('archive');
@@ -145,6 +176,11 @@ Route::middleware(['auth', 'coordinator'])->prefix('coordinator')->name('coordin
     Route::post('teams/{team}/players/import', [CoordinatorTeamController::class, 'importCsv'])->name('teams.players.import');
     Route::delete('teams/{team}/players/{player}', [CoordinatorTeamController::class, 'destroyPlayer'])->name('teams.players.destroy');
     Route::post('teams/{team}/resubmit', [CoordinatorTeamController::class, 'resubmit'])->name('teams.resubmit');
+
+    // Department Trials Management
+    Route::get('trials', [CoordinatorTrialController::class, 'index'])->name('trials.index');
+    Route::patch('trials/{trial}/status', [CoordinatorTrialController::class, 'updateStatus'])->name('trials.status');
+    Route::post('trials/{trial}/draft', [CoordinatorTrialController::class, 'draftToSquad'])->name('trials.draft');
 });
 
 // Score Entry (Accessible by Admin and Scorer)
@@ -157,9 +193,11 @@ Route::middleware(['auth', 'can.score'])->group(function () {
     Route::get('/score-entry/pad/{fixture}', [ScoreEntryController::class, 'quickPad'])->name('score-entry.pad');
     Route::post('/score-entry', [ScoreEntryController::class, 'store'])->name('score-entry.store');
 
-    // Match Photos (Accessible by Admin and Scorer)
+    // Match Photos & Video Highlights (Accessible by Admin and Scorer)
     Route::post('/admin/fixtures/{fixture}/photos', [MatchPhotoController::class, 'store'])->name('admin.fixtures.photos.store');
     Route::delete('/admin/match-photos/{photo}', [MatchPhotoController::class, 'destroy'])->name('admin.fixtures.photos.destroy');
+    Route::post('/admin/fixtures/{fixture}/videos', [MatchVideoController::class, 'store'])->name('admin.fixtures.videos.store');
+    Route::delete('/admin/match-videos/{video}', [MatchVideoController::class, 'destroy'])->name('admin.fixtures.videos.destroy');
 
     // Match Timeline Events (Accessible by Admin and Scorer)
     Route::post('/admin/fixtures/{fixture}/events', [MatchEventController::class, 'store'])->name('admin.fixtures.events.store');

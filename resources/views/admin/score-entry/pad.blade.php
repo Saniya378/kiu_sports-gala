@@ -61,28 +61,60 @@
                 @endif
             </div>
 
-            <!-- Dynamic Live Pill -->
-            <div id="live-indicator-badge">
-                @if ($fixture->status === 'live')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-rose-500 text-white animate-pulse">
-                        <span class="w-2 h-2 mr-1.5 rounded-full bg-white"></span>
-                        LIVE MATCH
-                    </span>
-                @elseif ($fixture->status === 'completed')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-200">
-                        COMPLETED
-                    </span>
-                @else
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                        SCHEDULED
-                    </span>
-                @endif
+            <!-- Dynamic Live Pill & Connection Status -->
+            <div class="flex items-center space-x-2">
+                <span id="network-pill" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/40">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span>Online</span>
+                </span>
+
+                <div id="live-indicator-badge">
+                    @if ($fixture->status === 'live')
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-rose-500 text-white animate-pulse">
+                            <span class="w-2 h-2 mr-1.5 rounded-full bg-white"></span>
+                            LIVE MATCH
+                        </span>
+                    @elseif ($fixture->status === 'completed')
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-200">
+                            COMPLETED
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                            SCHEDULED
+                        </span>
+                    @endif
+                </div>
             </div>
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-800 text-xs text-slate-300">
             <span><strong>Venue:</strong> {{ $fixture->venue->name ?? 'Main Ground' }}</span>
             <span><strong>Date:</strong> {{ $fixture->match_date ? \Carbon\Carbon::parse($fixture->match_date)->format('M d, Y') : 'TBD' }}</span>
+        </div>
+    </div>
+
+    <!-- Offline Resilience & Local Queue Alert Banner -->
+    <div id="network-status-banner" class="hidden rounded-2xl p-4 border bg-amber-50 border-amber-300 text-amber-900 shadow-sm transition-all duration-300">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <span id="network-icon" class="text-2xl">⚠️</span>
+                <div>
+                    <h4 id="network-title" class="text-xs font-bold font-sports uppercase tracking-wider text-amber-950">
+                        Offline Safe Mode Active
+                    </h4>
+                    <p id="network-desc" class="text-xs text-amber-800 mt-0.5">
+                        Connection dropped! Your score updates are safely stored on this phone and will auto-sync when online.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <span id="pending-queue-count" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-200 text-amber-950">
+                    1 change pending
+                </span>
+                <button type="button" id="btn-manual-sync" onclick="syncOfflineQueue()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-xs transition-colors">
+                    Sync Now
+                </button>
+            </div>
         </div>
     </div>
 
@@ -670,6 +702,124 @@
         }
     }
 
+    // --- Offline Resilience & Queue Management ---
+    const OFFLINE_QUEUE_KEY = 'kiu_scorer_offline_queue_{{ $fixture->id }}';
+
+    function getQueuedPayload() {
+        try {
+            const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function setQueuedPayload(data) {
+        try {
+            localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(data));
+            updateOfflineUI();
+        } catch (e) {
+            console.error('Storage error:', e);
+        }
+    }
+
+    function clearQueuedPayload() {
+        try {
+            localStorage.removeItem(OFFLINE_QUEUE_KEY);
+            updateOfflineUI();
+        } catch (e) {
+            console.error('Storage clear error:', e);
+        }
+    }
+
+    function updateOfflineUI() {
+        const queued = getQueuedPayload();
+        const banner = document.getElementById('network-status-banner');
+        const countBadge = document.getElementById('pending-queue-count');
+        const networkPill = document.getElementById('network-pill');
+
+        if (!navigator.onLine) {
+            if (networkPill) {
+                networkPill.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-950/70 text-rose-300 border border-rose-500/40';
+                networkPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span><span>Offline Mode</span>';
+            }
+        } else {
+            if (networkPill) {
+                networkPill.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/40';
+                networkPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Online</span>';
+            }
+        }
+
+        if (queued) {
+            if (banner) banner.classList.remove('hidden');
+            if (countBadge) countBadge.textContent = 'Unsynced Local Changes Ready';
+        } else if (!navigator.onLine) {
+            if (banner) banner.classList.remove('hidden');
+            if (countBadge) countBadge.textContent = 'No pending changes yet';
+        } else {
+            if (banner) banner.classList.add('hidden');
+        }
+    }
+
+    window.addEventListener('online', () => {
+        updateOfflineUI();
+        showToast('Internet restored! Synchronizing queued changes...');
+        syncOfflineQueue();
+    });
+
+    window.addEventListener('offline', () => {
+        updateOfflineUI();
+        showToast('Internet disconnected! Offline Safe Mode enabled.', true);
+    });
+
+    async function syncOfflineQueue() {
+        const queued = getQueuedPayload();
+        if (!queued) {
+            updateOfflineUI();
+            return;
+        }
+
+        if (!navigator.onLine) {
+            showToast('Still offline. Score remains safely stored locally.', true);
+            return;
+        }
+
+        const btnSync = document.getElementById('btn-manual-sync');
+        if (btnSync) btnSync.disabled = true;
+
+        try {
+            const form = document.getElementById('quick-scorer-form');
+            const formData = new FormData();
+            for (const [key, val] of Object.entries(queued)) {
+                formData.append(key, val);
+            }
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (response.ok && data.success) {
+                clearQueuedPayload();
+                showToast('🟢 Back Online! Successfully synced pending scores to server.');
+                updateStateTheme();
+            } else {
+                showToast(data.message || 'Sync failed, will retry.', true);
+            }
+        } catch (err) {
+            console.warn('Sync attempt failed, staying in queue:', err);
+            showToast('Sync attempt failed, staying in local queue.', true);
+        } finally {
+            if (btnSync) btnSync.disabled = false;
+            updateOfflineUI();
+        }
+    }
+
     async function submitAjaxScore() {
         const btn = document.getElementById('btn-save-ajax');
         const originalText = btn.innerHTML;
@@ -678,6 +828,22 @@
 
         const form = document.getElementById('quick-scorer-form');
         const formData = new FormData(form);
+
+        // Capture plain object for offline backup
+        const plainData = {};
+        for (const [key, value] of formData.entries()) {
+            plainData[key] = value;
+        }
+
+        // 1. If currently offline, queue locally directly without failing!
+        if (!navigator.onLine) {
+            setQueuedPayload(plainData);
+            showToast('💾 Saved locally! (Offline Mode - will sync when online)');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            updateStateTheme();
+            return;
+        }
 
         try {
             const response = await fetch(form.action, {
@@ -692,20 +858,32 @@
             const data = await response.json();
 
             if (response.ok && data.success) {
+                clearQueuedPayload();
                 showToast(data.message || 'Score successfully broadcasted!');
                 updateStateTheme();
             } else {
                 showToast(data.message || 'Failed to update score.', true);
             }
         } catch (error) {
-            console.error(error);
-            // Fallback: standard submit if network error
-            form.submit();
+            console.warn('Network error while scoring - saving to offline queue:', error);
+            // Save to offline queue safely instead of crashing to error page
+            setQueuedPayload(plainData);
+            showToast('⚠️ Network dropped! Score saved locally on your phone.', true);
+            updateStateTheme();
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
+            updateOfflineUI();
         }
     }
+
+    // Check pending queue on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        updateOfflineUI();
+        if (navigator.onLine && getQueuedPayload()) {
+            syncOfflineQueue();
+        }
+    });
 
     function showToast(message, isError = false) {
         const toast = document.getElementById('scorer-toast');
