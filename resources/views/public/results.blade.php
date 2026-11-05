@@ -4,17 +4,17 @@
 
 @section('content')
 <div class="space-y-8">
-    <!-- Header Banner -->
-    <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+    <!-- Header Banner (Unified Royal Blue & Athletic Gold) -->
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <span class="text-xs uppercase tracking-widest font-bold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/30">
+                <span class="text-xs uppercase tracking-widest font-sports font-black text-amber-300 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-400/40">
                     Tournament Standings
                 </span>
-                <h1 class="text-2xl sm:text-4xl font-black text-white mt-3 tracking-tight">
+                <h1 class="text-2xl sm:text-4xl font-black font-sports uppercase tracking-wide text-white mt-3">
                     Results & Points Table
                 </h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1">
+                <p class="text-blue-100 text-xs sm:text-sm mt-1 font-medium">
                     Official department standings, points breakdown, and completed match scores across sports.
                 </p>
             </div>
@@ -181,14 +181,14 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead>
-                                <tr class="bg-slate-900 text-slate-200 text-xs uppercase tracking-wider border-b border-slate-800">
+                                <tr class="bg-blue-950 text-blue-100 text-xs uppercase tracking-wider border-b border-blue-900">
                                     <th class="py-3.5 px-4 font-bold text-center w-14">Rank</th>
                                     <th class="py-3.5 px-4 font-bold">Department</th>
                                     <th class="py-3.5 px-3 font-bold text-center text-amber-400">🥇 Gold</th>
                                     <th class="py-3.5 px-3 font-bold text-center text-slate-300">🥈 Silver</th>
                                     <th class="py-3.5 px-3 font-bold text-center text-amber-300">🥉 Bronze</th>
                                     <th class="py-3.5 px-3 font-bold text-center">Total</th>
-                                    <th class="py-3.5 px-4 font-black text-center text-amber-400 bg-slate-950">Points</th>
+                                    <th class="py-3.5 px-4 font-black text-center text-amber-400 bg-blue-900">Points</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -276,7 +276,7 @@
                                     <th class="py-3.5 px-3 font-bold text-center" title="Score For">SF</th>
                                     <th class="py-3.5 px-3 font-bold text-center" title="Score Against">SA</th>
                                     <th class="py-3.5 px-3 font-bold text-center" title="Score Difference">+/-</th>
-                                    <th class="py-3.5 px-4 font-extrabold text-center text-amber-400 bg-slate-950" title="Total Points">PTS</th>
+                                    <th class="py-3.5 px-4 font-extrabold text-center text-amber-400 bg-blue-900" title="Total Points">PTS</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -433,7 +433,13 @@
                                     @endif
 
                                     @if($fixture->venue)
-                                        <span class="text-slate-400 truncate max-w-[150px]">📍 {{ $fixture->venue->name }}</span>
+                                        <span class="text-slate-400 truncate max-w-[150px] flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            <span>{{ $fixture->venue->name }}</span>
+                                        </span>
                                     @endif
                                 </div>
                             </div>

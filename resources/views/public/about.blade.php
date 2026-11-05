@@ -4,16 +4,16 @@
 
 @section('content')
 <div class="space-y-8">
-    <!-- Hero / Header Banner -->
-    <div class="relative bg-gradient-to-br from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-3xl p-8 sm:p-12 text-center overflow-hidden shadow-xl text-white">
+    <!-- Hero / Header Banner (Unified Royal Blue & Athletic Gold) -->
+    <div class="relative bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-3xl p-8 sm:p-12 text-center overflow-hidden shadow-xl text-white">
         <div class="relative z-10 max-w-3xl mx-auto space-y-4">
-            <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-amber-400 text-slate-950 shadow-md">
+            <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sports font-black uppercase tracking-widest bg-amber-400 text-slate-950 shadow-md">
                 Karakoram International University
             </span>
-            <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight">
+            <h1 class="text-3xl sm:text-5xl font-black font-sports uppercase tracking-wide text-white">
                 About the Annual Sports Gala
             </h1>
-            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+            <p class="text-blue-100 text-sm sm:text-base leading-relaxed font-medium">
                 The flagship collegiate tournament fostering sportsmanship, physical wellness, camaraderie, and athletic excellence across Gilgit-Baltistan.
             </p>
         </div>
@@ -112,25 +112,30 @@
             </div>
         </div>
 
-        <!-- Right 1 Col: Contact Information Card -->
+        <!-- Right 1 Col: Contact Directorate Summary Card -->
         <div class="space-y-6">
-            <div class="bg-gradient-to-br from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 shadow-xl text-white">
-                <h3 class="text-xl font-black text-white mb-4 flex items-center gap-2">
-                    <span class="text-amber-400">📞</span>
+            <div class="bg-gradient-to-br from-blue-950 via-indigo-950 to-blue-900 border-2 border-amber-400 rounded-2xl p-6 sm:p-8 shadow-xl text-white">
+                <h3 class="text-xl font-black font-sports tracking-wide uppercase text-white mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
                     <span>Contact Directorate</span>
                 </h3>
 
-                <p class="text-xs text-slate-300 mb-6">
+                <p class="text-xs text-blue-200 mb-6 leading-relaxed">
                     Have questions regarding team registrations, schedules, or officiating guidelines? Reach out to the organizing team:
                 </p>
 
-                <div class="space-y-4 text-xs sm:text-sm text-slate-200">
+                <div class="space-y-4 text-xs sm:text-sm text-blue-100">
                     <div class="flex items-start gap-3">
-                        <span class="text-amber-400 text-base">📍</span>
+                        <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                         <div>
-                            <div class="font-bold text-white">Office Location</div>
-                            <p class="text-slate-300">
-                                Directorate of Sports & Physical Education<br>
+                            <div class="font-bold text-white uppercase text-xs tracking-wider">Office Location</div>
+                            <p class="text-xs text-blue-200/90 leading-relaxed mt-0.5">
+                                Directorate of Sports &amp; Physical Education<br>
                                 Karakoram International University<br>
                                 University Road, Gilgit, Gilgit-Baltistan
                             </p>
@@ -138,36 +143,42 @@
                     </div>
 
                     <div class="flex items-start gap-3">
-                        <span class="text-amber-400 text-base">✉️</span>
+                        <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
                         <div>
-                            <div class="font-bold text-white">Email Inquiries</div>
-                            <a href="mailto:sports@kiu.edu.pk" class="text-amber-300 hover:underline">
+                            <div class="font-bold text-white uppercase text-xs tracking-wider">Email Inquiries</div>
+                            <a href="mailto:sports@kiu.edu.pk" class="text-xs text-amber-300 hover:text-amber-200 font-semibold underline mt-0.5 block">
                                 sports@kiu.edu.pk
                             </a>
                         </div>
                     </div>
 
                     <div class="flex items-start gap-3">
-                        <span class="text-amber-400 text-base">☎️</span>
+                        <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
                         <div>
-                            <div class="font-bold text-white">Telephone / Extension</div>
-                            <p class="text-slate-300">+92 (05811) 960010 - Ext. 234</p>
+                            <div class="font-bold text-white uppercase text-xs tracking-wider">Telephone / Extension</div>
+                            <p class="text-xs text-blue-200/90 font-mono mt-0.5">+92 (05811) 960010 &bull; Ext. 234</p>
                         </div>
                     </div>
 
                     <div class="flex items-start gap-3">
-                        <span class="text-amber-400 text-base">⏰</span>
+                        <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                         <div>
-                            <div class="font-bold text-white">Office Hours</div>
-                            <p class="text-slate-300">Monday &ndash; Friday: 08:30 AM &ndash; 04:30 PM</p>
+                            <div class="font-bold text-white uppercase text-xs tracking-wider">Office Hours</div>
+                            <p class="text-xs text-blue-200/90 mt-0.5">Monday &ndash; Friday: 08:30 AM &ndash; 04:30 PM</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-slate-700">
-                    <a href="{{ route('schedule') }}"
-                       class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs transition shadow-md flex items-center justify-center gap-2">
-                        <span>View Tournament Schedule</span> &rarr;
+                <div class="mt-8 pt-6 border-t border-blue-800/80 flex flex-col gap-2.5">
+                    <a href="{{ route('contact') }}"
+                       class="w-full py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-sports font-black text-xs uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center gap-2 text-center">
+                        <span>Go to Contact Page</span> &rarr;
                     </a>
                 </div>
             </div>

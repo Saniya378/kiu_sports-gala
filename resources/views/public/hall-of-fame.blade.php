@@ -4,19 +4,19 @@
 
 @section('content')
 <div class="space-y-10">
-    <!-- Hall of Fame Hero -->
-    <div class="relative bg-gradient-to-br from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-3xl p-8 sm:p-12 text-center overflow-hidden shadow-xl text-white">
+    <!-- Hall of Fame Hero (Unified Royal Blue & Athletic Gold) -->
+    <div class="relative bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-3xl p-8 sm:p-12 text-center overflow-hidden shadow-xl text-white">
         <div class="absolute -top-32 -left-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 max-w-3xl mx-auto space-y-4">
-            <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-amber-400 text-slate-950 shadow-md">
+            <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sports font-black uppercase tracking-widest bg-amber-400 text-slate-950 shadow-md">
                 <span>🏆</span> University Athletic Roll of Honor
             </span>
-            <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight">
+            <h1 class="text-3xl sm:text-5xl font-black font-sports uppercase tracking-wide text-white">
                 KIU Sports Hall of Fame
             </h1>
-            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+            <p class="text-blue-100 text-sm sm:text-base leading-relaxed font-medium">
                 Celebrating departmental athletic supremacy, championship titles, and memorable rivalries across all editions of the Karakoram International University Sports Gala.
             </p>
         </div>
@@ -41,7 +41,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
                         <thead>
-                            <tr class="bg-slate-900 text-slate-200 text-xs uppercase tracking-wider border-b border-slate-800">
+                            <tr class="bg-blue-950 text-blue-100 text-xs uppercase tracking-wider border-b border-blue-900">
                                 <th class="py-3.5 px-4 font-bold text-center w-16">Rank</th>
                                 <th class="py-3.5 px-6 font-bold">Academic Department</th>
                                 <th class="py-3.5 px-4 font-bold text-center text-amber-400">🏆 Gold (Champions)</th>

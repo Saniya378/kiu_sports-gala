@@ -32,17 +32,17 @@
      @keydown.arrow-right.window="lightboxOpen ? nextImage() : null"
      @keydown.arrow-left.window="lightboxOpen ? prevImage() : null">
 
-    <!-- Gallery Header Banner -->
-    <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+    <!-- Gallery Header Banner (Unified Royal Blue & Athletic Gold) -->
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <span class="text-xs uppercase tracking-widest font-bold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/30">
+                <span class="text-xs uppercase tracking-widest font-sports font-black text-amber-300 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-400/40">
                     Visual Chronicle
                 </span>
-                <h1 class="text-2xl sm:text-4xl font-black text-white mt-3 tracking-tight">
+                <h1 class="text-2xl sm:text-4xl font-black font-sports uppercase tracking-wide text-white mt-3">
                     Gala Photo Gallery
                 </h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1">
+                <p class="text-blue-100 text-xs sm:text-sm mt-1 font-medium">
                     Official tournament moments, match action highlights, and championship celebrations grouped by edition.
                 </p>
             </div>
@@ -50,12 +50,12 @@
             <!-- Edition Year Filter Filter -->
             <div class="flex items-center gap-2 flex-wrap">
                 <a href="{{ route('gallery') }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {{ empty($selectedYear) ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-slate-900 border border-slate-700 text-slate-200 hover:text-amber-300' }}">
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {{ empty($selectedYear) ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-blue-950 border border-blue-800 text-blue-100 hover:text-amber-300' }}">
                     All Gala Editions
                 </a>
                 @foreach($editions as $ed)
                     <a href="{{ route('gallery', ['year' => $ed->year]) }}"
-                       class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all {{ (string)$selectedYear === (string)$ed->year ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-slate-900 border border-slate-700 text-slate-200 hover:text-amber-300' }}">
+                       class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all {{ (string)$selectedYear === (string)$ed->year ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-blue-950 border border-blue-800 text-blue-100 hover:text-amber-300' }}">
                         {{ $ed->year }}
                     </a>
                 @endforeach

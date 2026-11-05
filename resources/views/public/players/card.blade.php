@@ -8,8 +8,10 @@
     <!-- Top Action Toolbar (Hidden in Print) -->
     <div class="print:hidden flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
         <div class="flex items-center space-x-3">
-            <span class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-600 flex items-center justify-center font-black text-xl">
-                🪪
+            <span class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center font-bold text-lg">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                </svg>
             </span>
             <div>
                 <h1 class="text-base font-bold text-slate-900 leading-tight">Digital Athlete Pass & Accreditation</h1>
@@ -29,7 +31,7 @@
                 </a>
             @endif
             <button onclick="window.print()"
-                    class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-[#0a1226] text-amber-300 hover:bg-[#060b18] shadow-sm transition-colors">
+                    class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-blue-900 text-amber-300 hover:bg-blue-800 border border-blue-700 shadow-sm transition-colors">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
@@ -43,17 +45,17 @@
         <div id="player-id-card" class="w-full max-w-md bg-white border-2 border-slate-300 rounded-3xl shadow-xl overflow-hidden print:border-2 print:shadow-none print:max-w-sm">
 
             <!-- Card Lanyard Hole Slot Aesthetic -->
-            <div class="bg-[#060b18] pt-3 pb-1 text-center">
-                <div class="w-16 h-3 mx-auto bg-slate-800 rounded-full border border-slate-700 shadow-inner"></div>
+            <div class="bg-blue-950 pt-3 pb-1 text-center">
+                <div class="w-16 h-3 mx-auto bg-blue-900 rounded-full border border-blue-800 shadow-inner"></div>
             </div>
 
-            <!-- Pass Header (KIU Official Navy & Gold) -->
-            <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] p-5 text-white text-center border-b-2 border-amber-400 relative">
+            <!-- Pass Header (KIU Official Royal Blue & Gold) -->
+            <div class="bg-gradient-to-r from-blue-950 via-indigo-950 to-blue-900 p-5 text-white text-center border-b-2 border-amber-400 relative">
                 <div class="flex items-center justify-center space-x-2 mb-1">
-                    <div class="w-7 h-7 rounded-lg bg-amber-400 text-[#0a1226] flex items-center justify-center font-black text-sm">
+                    <div class="w-7 h-7 rounded-lg bg-amber-400 text-blue-950 flex items-center justify-center font-black text-sm">
                         KIU
                     </div>
-                    <span class="text-xs uppercase font-black tracking-widest text-amber-400">
+                    <span class="text-xs uppercase font-sports font-black tracking-widest text-amber-400">
                         Directorate of Sports
                     </span>
                 </div>
@@ -71,7 +73,7 @@
                 <!-- Player Avatar & Verification Pill -->
                 <div class="flex items-center space-x-4">
                     <!-- Silhouette / Photo Placeholder -->
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#0a1226] to-slate-800 p-0.5 shadow-md shrink-0 flex items-center justify-center text-amber-400 relative overflow-hidden">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-950 to-indigo-900 p-0.5 shadow-md shrink-0 flex items-center justify-center text-amber-400 relative overflow-hidden">
                         @if($player->photo_url)
                             <img src="{{ $player->photo_url }}" alt="{{ $player->name }}" class="w-full h-full rounded-2xl object-cover">
                         @else
@@ -152,7 +154,7 @@
                 </div>
 
                 <!-- QR Code & Scan Prompt -->
-                <div class="flex items-center space-x-4 p-3.5 rounded-2xl bg-slate-900 text-white">
+                <div class="flex items-center space-x-4 p-3.5 rounded-2xl bg-blue-950 text-white border border-blue-900">
                     <div class="w-24 h-24 bg-white p-1 rounded-xl shrink-0 flex items-center justify-center shadow-md">
                         {!! $qrSvg !!}
                     </div>

@@ -4,17 +4,17 @@
 
 @section('content')
 <div class="space-y-8">
-    <!-- Header Banner -->
-    <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+    <!-- Header Banner (Unified Royal Blue & Athletic Gold) -->
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <span class="text-xs uppercase tracking-widest font-bold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/30">
+                <span class="text-xs uppercase tracking-widest font-sports font-black text-amber-300 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-400/40">
                     Departmental Squads
                 </span>
-                <h1 class="text-2xl sm:text-4xl font-black text-white mt-3 tracking-tight">
+                <h1 class="text-2xl sm:text-4xl font-black font-sports uppercase tracking-wide text-white mt-3">
                     Participating Teams & Squads
                 </h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1">
+                <p class="text-blue-100 text-xs sm:text-sm mt-1 font-medium">
                     Explore registered academic department teams, disciplines, and player rosters.
                 </p>
             </div>
@@ -24,7 +24,7 @@
                 <div>
                     <label for="edition_id" class="block text-[11px] font-bold text-amber-300 uppercase mb-1">Edition</label>
                     <select name="edition_id" id="edition_id" onchange="this.form.submit()"
-                            class="bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-amber-300 font-semibold text-xs focus:ring-2 focus:ring-amber-400">
+                            class="bg-blue-950 border border-blue-800 rounded-xl px-3 py-2 text-amber-300 font-semibold text-xs focus:ring-2 focus:ring-amber-400">
                         @foreach($editions as $ed)
                             <option value="{{ $ed->id }}" {{ $selectedEdition && $selectedEdition->id === $ed->id ? 'selected' : '' }}>
                                 {{ $ed->title }} ({{ $ed->year }})
@@ -34,9 +34,9 @@
                 </div>
 
                 <div>
-                    <label for="sport_id" class="block text-[11px] font-bold text-slate-300 uppercase mb-1">Sport</label>
+                    <label for="sport_id" class="block text-[11px] font-bold text-blue-200 uppercase mb-1">Sport</label>
                     <select name="sport_id" id="sport_id" onchange="this.form.submit()"
-                            class="bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:ring-2 focus:ring-amber-400">
+                            class="bg-blue-950 border border-blue-800 rounded-xl px-3 py-2 text-blue-100 text-xs focus:ring-2 focus:ring-amber-400">
                         <option value="">All Sports</option>
                         @foreach($sports as $sp)
                             <option value="{{ $sp->id }}" {{ (string)$selectedSportId === (string)$sp->id ? 'selected' : '' }}>
@@ -94,7 +94,7 @@
                                             <a href="{{ route('players.card', $player) }}"
                                                class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shrink-0"
                                                title="View Digital Pass & QR">
-                                                Pass 🪪
+                                                Pass
                                             </a>
                                         </div>
                                     @endforeach
@@ -108,8 +108,11 @@
                     <!-- Footer Link -->
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
                         <a href="{{ route('teams.id-cards', $team) }}"
-                           class="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors">
-                            <span class="mr-1">🪪</span> Squad Passes
+                           class="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors">
+                            <svg class="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                            </svg>
+                            Squad Passes
                         </a>
                         <a href="{{ route('schedule', ['edition_id' => $team->edition_id, 'sport_id' => $team->sport_id]) }}"
                            class="font-bold text-blue-600 hover:text-blue-800 transition-colors">

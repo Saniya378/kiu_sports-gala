@@ -515,13 +515,23 @@ class PublicController extends Controller
     }
 
     /**
-     * Display About & Contact page with static content.
+     * Display About page with tournament history and mission.
      */
     public function about(): View
     {
         $latestEdition = Edition::orderBy('year', 'desc')->first();
 
         return view('public.about', compact('latestEdition'));
+    }
+
+    /**
+     * Display dedicated Contact page.
+     */
+    public function contact(): View
+    {
+        $latestEdition = Edition::orderBy('year', 'desc')->first();
+
+        return view('public.contact', compact('latestEdition'));
     }
 }
 

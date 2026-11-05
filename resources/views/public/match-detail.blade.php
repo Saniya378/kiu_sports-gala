@@ -13,14 +13,14 @@
         <span class="text-slate-900 font-semibold">Match #{{ $fixture->id }}</span>
     </div>
 
-    <!-- Match Header Card -->
-    <div class="bg-gradient-to-br from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 md:p-10 shadow-xl relative overflow-hidden text-white">
+    <!-- Match Header Card (Unified Royal Blue & Athletic Gold Theme) -->
+    <div class="bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-2xl p-6 md:p-10 shadow-xl relative overflow-hidden text-white">
         <div class="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Meta Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-slate-800 text-xs md:text-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-blue-800/80 text-xs md:text-sm">
             <div class="flex items-center gap-2 flex-wrap">
-                <span class="px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-blue-300 font-semibold uppercase tracking-wider">
+                <span class="px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 font-sports font-bold uppercase tracking-wider">
                     {{ $fixture->sport->name ?? 'Sport' }}
                     @if($fixture->sport && $fixture->sport->category)
                         <span class="text-blue-200 font-normal">({{ ucfirst($fixture->sport->category) }})</span>
@@ -28,12 +28,12 @@
                 </span>
 
                 @if($fixture->round)
-                    <span class="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-slate-200">
+                    <span class="px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700 text-slate-200">
                         {{ $fixture->round }}
                     </span>
                 @endif
 
-                <span class="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-amber-300">
+                <span class="px-3 py-1 rounded-full bg-blue-950/80 border border-blue-700 text-amber-300">
                     {{ $fixture->edition->title ?? 'KIU Sports Gala' }} ({{ $fixture->edition->year ?? 'Annual' }})
                 </span>
             </div>
@@ -80,19 +80,24 @@
         <div class="grid grid-cols-1 lg:grid-cols-11 gap-6 items-center py-8">
             <!-- Team 1 -->
             <div class="lg:col-span-4 text-center lg:text-right">
-                <div class="inline-block p-1">
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-                        {{ $fixture->team1->name ?? 'Team 1' }}
-                    </h2>
-                    <p class="text-sm md:text-base text-blue-200 font-medium mt-1">
-                        {{ $fixture->team1->department->name ?? 'Department of Team 1' }}
-                    </p>
-                    <div id="team1-winner-badge">
-                        @if($fixture->result && $fixture->result->winner_team_id === $fixture->team1_id)
-                            <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
-                                🏆 WINNER
-                            </span>
-                        @endif
+                <div class="inline-flex flex-col lg:flex-row-reverse items-center gap-3">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-900 to-indigo-900 border-2 border-amber-400/80 text-amber-400 font-sports font-black flex items-center justify-center text-lg shadow-lg shrink-0">
+                        {{ $fixture->team1->department->code ?? substr($fixture->team1->name ?? 'T1', 0, 3) }}
+                    </div>
+                    <div class="text-center lg:text-right">
+                        <h2 class="text-2xl md:text-3xl font-sports font-black text-white tracking-tight uppercase">
+                            {{ $fixture->team1->name ?? 'Team 1' }}
+                        </h2>
+                        <p class="text-xs md:text-sm text-blue-200 font-medium mt-0.5">
+                            {{ $fixture->team1->department->name ?? 'Department of Team 1' }}
+                        </p>
+                        <div id="team1-winner-badge">
+                            @if($fixture->result && $fixture->result->winner_team_id === $fixture->team1_id)
+                                <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+                                    🏆 WINNER
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,19 +120,24 @@
 
             <!-- Team 2 -->
             <div class="lg:col-span-4 text-center lg:text-left">
-                <div class="inline-block p-1">
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-                        {{ $fixture->team2->name ?? 'Team 2' }}
-                    </h2>
-                    <p class="text-sm md:text-base text-blue-200 font-medium mt-1">
-                        {{ $fixture->team2->department->name ?? 'Department of Team 2' }}
-                    </p>
-                    <div id="team2-winner-badge">
-                        @if($fixture->result && $fixture->result->winner_team_id === $fixture->team2_id)
-                            <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
-                                🏆 WINNER
-                            </span>
-                        @endif
+                <div class="inline-flex flex-col lg:flex-row items-center gap-3">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 border-2 border-cyan-400/80 text-cyan-400 font-sports font-black flex items-center justify-center text-lg shadow-lg shrink-0">
+                        {{ $fixture->team2->department->code ?? substr($fixture->team2->name ?? 'T2', 0, 3) }}
+                    </div>
+                    <div class="text-center lg:text-left">
+                        <h2 class="text-2xl md:text-3xl font-sports font-black text-white tracking-tight uppercase">
+                            {{ $fixture->team2->name ?? 'Team 2' }}
+                        </h2>
+                        <p class="text-xs md:text-sm text-blue-200 font-medium mt-0.5">
+                            {{ $fixture->team2->department->name ?? 'Department of Team 2' }}
+                        </p>
+                        <div id="team2-winner-badge">
+                            @if($fixture->result && $fixture->result->winner_team_id === $fixture->team2_id)
+                                <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+                                    🏆 WINNER
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

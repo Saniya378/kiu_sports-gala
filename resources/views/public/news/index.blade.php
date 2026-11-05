@@ -4,17 +4,17 @@
 
 @section('content')
 <div class="space-y-8">
-    <!-- News Header Banner -->
-    <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+    <!-- News Header Banner (Unified Royal Blue & Athletic Gold) -->
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <span class="text-xs uppercase tracking-widest font-bold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/30">
+                <span class="text-xs uppercase tracking-widest font-sports font-black text-amber-300 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-400/40">
                     Official Updates
                 </span>
-                <h1 class="text-2xl sm:text-4xl font-black text-white mt-3 tracking-tight">
+                <h1 class="text-2xl sm:text-4xl font-black font-sports uppercase tracking-wide text-white mt-3">
                     News & Gala Bulletins
                 </h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1">
+                <p class="text-blue-100 text-xs sm:text-sm mt-1 font-medium">
                     Stay updated with tournament schedules, results announcements, team rosters, and official communique.
                 </p>
             </div>
@@ -26,7 +26,7 @@
                         Filter by Gala
                     </label>
                     <select name="edition_id" id="edition_id" onchange="this.form.submit()"
-                            class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-amber-300 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                            class="w-full bg-blue-950 border border-blue-800 rounded-xl px-4 py-2.5 text-amber-300 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
                         <option value="">All Announcements</option>
                         @foreach($editions as $edition)
                             <option value="{{ $edition->id }}" {{ request('edition_id') == $edition->id ? 'selected' : '' }}>

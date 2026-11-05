@@ -54,7 +54,7 @@ Route::get('/news', [PublicController::class, 'news'])->name('news');
 Route::get('/news/{news}', [PublicController::class, 'newsShow'])->name('news.show');
 Route::get('/teams', [PublicController::class, 'teams'])->name('teams.public');
 Route::get('/about', [PublicController::class, 'about'])->name('about');
-Route::get('/contact', [PublicController::class, 'about'])->name('contact');
+Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 
 // Closing Ceremony & Auditorium Big Screen Mode
 Route::get('/ceremony', [CeremonyController::class, 'index'])->name('ceremony');

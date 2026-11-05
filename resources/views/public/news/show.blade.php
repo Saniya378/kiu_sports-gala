@@ -53,7 +53,7 @@
         <!-- Article Footer / Share / Back Link -->
         <div class="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <a href="{{ route('news') }}"
-               class="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 transition-colors">
+               class="inline-flex items-center gap-2 text-xs font-sports font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-amber-300 border border-blue-700 transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>

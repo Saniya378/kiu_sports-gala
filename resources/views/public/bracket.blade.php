@@ -5,20 +5,20 @@
 @section('content')
 <div class="space-y-8">
 
-    <!-- Header & Filters Banner -->
-    <div class="bg-gradient-to-r from-[#060b18] via-[#0c1630] to-[#0a1226] border-2 border-amber-400/80 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+    <!-- Header & Filters Banner (Unified Royal Blue & Athletic Gold) -->
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 border-2 border-amber-400 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
                 <div class="flex items-center space-x-2 mb-1">
-                    <span class="text-xs uppercase tracking-widest font-black text-amber-300 bg-amber-400/20 px-3 py-0.5 rounded-full border border-amber-400/40">
+                    <span class="text-xs uppercase tracking-widest font-sports font-black text-amber-300 bg-amber-400/20 px-3 py-0.5 rounded-full border border-amber-400/40">
                         Interactive Bracket Tree
                     </span>
-                    <span class="text-xs text-slate-400">Single Elimination Roadmap</span>
+                    <span class="text-xs text-blue-200">Single Elimination Roadmap</span>
                 </div>
-                <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                <h1 class="text-2xl sm:text-4xl font-black font-sports uppercase tracking-wide text-white">
                     Tournament Knockout Brackets
                 </h1>
-                <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                <p class="text-xs sm:text-sm text-blue-100 mt-1 max-w-2xl font-medium">
                     Track departmental playoff progression, elimination rounds, and championship finals across sports disciplines.
                 </p>
             </div>
@@ -29,7 +29,7 @@
                 <div>
                     <label for="edition_id" class="sr-only">Edition</label>
                     <select name="edition_id" id="edition_id" onchange="this.form.submit()"
-                            class="w-full sm:w-auto rounded-xl border-slate-700 bg-slate-900/90 text-amber-300 text-xs font-semibold focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3.5 shadow-sm">
+                            class="w-full sm:w-auto rounded-xl border-blue-800 bg-blue-950 text-amber-300 text-xs font-semibold focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3.5 shadow-sm">
                         @foreach ($editions as $edition)
                             <option value="{{ $edition->id }}" {{ $selectedEdition?->id == $edition->id ? 'selected' : '' }}>
                                 {{ $edition->title }} ({{ $edition->year }})
@@ -42,7 +42,7 @@
                 <div>
                     <label for="sport_id" class="sr-only">Sport</label>
                     <select name="sport_id" id="sport_id" onchange="this.form.submit()"
-                            class="w-full sm:w-auto rounded-xl border-slate-700 bg-slate-900/90 text-amber-300 text-xs font-semibold focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3.5 shadow-sm">
+                            class="w-full sm:w-auto rounded-xl border-blue-800 bg-blue-950 text-amber-300 text-xs font-semibold focus:border-amber-400 focus:ring-amber-400 py-2.5 px-3.5 shadow-sm">
                         @foreach ($sports as $sport)
                             <option value="{{ $sport->id }}" {{ $selectedSport?->id == $sport->id ? 'selected' : '' }}>
                                 {{ $sport->name }} ({{ ucfirst($sport->category) }})
@@ -57,7 +57,7 @@
     <!-- View Switcher Toolbar -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
         <div class="flex items-center space-x-2">
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#0a1226] text-amber-400 shadow-xs">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-950 text-amber-400 shadow-xs">
                 🌳 Visual Bracket
             </span>
             <a href="{{ route('schedule', ['edition_id' => $selectedEdition?->id, 'sport_id' => $selectedSport?->id]) }}"
@@ -217,7 +217,7 @@
                 Knockout brackets are rendered when Quarter-Finals, Semi-Finals, and Final matches are scheduled for this sport discipline.
             </p>
             <div class="flex items-center justify-center gap-3">
-                <a href="{{ route('schedule', ['edition_id' => $selectedEdition?->id]) }}" class="inline-flex items-center px-4 py-2 bg-[#0a1226] text-amber-300 font-bold text-xs rounded-xl shadow-sm hover:bg-[#060b18] transition-colors">
+                <a href="{{ route('schedule', ['edition_id' => $selectedEdition?->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-900 text-amber-300 font-bold text-xs rounded-xl shadow-sm hover:bg-blue-800 transition-colors">
                     View Match Timetable
                 </a>
                 <a href="{{ route('results', ['edition_id' => $selectedEdition?->id]) }}" class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-xl transition-colors">
